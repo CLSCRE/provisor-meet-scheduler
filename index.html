@@ -24,7 +24,7 @@
     .stat .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; }
 
     /* Layout */
-    .container { display: flex; height: calc(100vh - 68px); }
+    .container { display: flex; height: calc(100vh - 100px); }
     .sidebar { width: 520px; min-width: 520px; display: flex; flex-direction: column; background: white; border-right: 1px solid #dfe6e9; }
     .right-panel { flex: 1; position: relative; display: flex; flex-direction: column; }
 
@@ -212,12 +212,69 @@
     .slot-tooltip .tt-group:last-child { border-bottom: none; }
     .slot-tooltip .tt-city { color: #636e72; }
 
+    /* Hub Integration Bar */
+    .hub-bar {
+      display: flex; align-items: center; gap: 10px; padding: 6px 16px;
+      background: #0d2b45; border-bottom: 1px solid #1a4060; font-size: 12px;
+    }
+    .hub-status { display: flex; align-items: center; gap: 6px; color: #8ca8c4; }
+    .hub-dot { width: 8px; height: 8px; border-radius: 50%; background: #636e72; flex-shrink: 0; }
+    .hub-dot.connected { background: #27ae60; }
+    .hub-dot.syncing { background: #f39c12; animation: pulse 1s infinite; }
+    .hub-dot.error { background: #e74c3c; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .hub-bar button {
+      padding: 4px 12px; border: none; border-radius: 4px; font-size: 11px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .hub-bar .btn-sync { background: #C5A355; color: white; }
+    .hub-bar .btn-sync:hover { background: #b8963e; }
+    .hub-bar .btn-sync:disabled { opacity: 0.5; cursor: not-allowed; }
+    .hub-bar .btn-login { background: #27ae60; color: white; }
+    .hub-bar .btn-login:hover { background: #219a52; }
+    .hub-bar .hub-info { color: #6b9bc0; flex: 1; }
+    .hub-bar .hub-mode { display: flex; align-items: center; gap: 6px; }
+    .hub-bar .hub-mode label { color: #8ca8c4; font-size: 11px; cursor: pointer; }
+    .hub-bar .hub-mode input[type="checkbox"] { accent-color: #C5A355; cursor: pointer; }
+    .hub-reg-badge {
+      display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 9px;
+      font-weight: 700; background: #27ae60; color: white; margin-left: 4px; vertical-align: middle;
+    }
+
+    /* Hub registration highlight in table */
+    .table-wrap tr.hub-registered { background: #edf7ed; }
+    .table-wrap tr.hub-registered:hover { background: #e0f0e0; }
+
+    /* Calendar hub-booked slot */
+    .cal-slot.hub-booked {
+      background: #27ae60; color: white; border: 1px solid #27ae60;
+      cursor: default; position: relative;
+    }
+    .cal-slot.hub-booked::after {
+      content: '✓'; position: absolute; right: 3px; top: 0; font-size: 8px; opacity: 0.7;
+    }
+
+    /* Server config */
+    .server-config {
+      display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      background: white; padding: 24px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      z-index: 10001; min-width: 360px;
+    }
+    .server-config.show { display: block; }
+    .server-config h3 { color: #153D63; margin-bottom: 12px; }
+    .server-config input { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; margin-bottom: 8px; }
+    .server-config .cfg-btns { display: flex; gap: 8px; justify-content: flex-end; }
+    .server-config button { padding: 6px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 10000; }
+    .overlay.show { display: block; }
+
     /* Responsive */
     @media (max-width: 1024px) {
       .container { flex-direction: column; height: auto; }
       .sidebar { width: 100%; min-width: auto; max-height: 50vh; }
       .right-panel { height: 50vh; }
       .cal-day { min-height: 70px; }
+      .hub-bar { flex-wrap: wrap; }
     }
   </style>
 </head>
@@ -234,6 +291,35 @@
     <div class="stat"><div class="num" id="stat-affinity">36</div><div class="label">Affinity</div></div>
     <div class="stat"><div class="num" id="stat-cities">28</div><div class="label">Cities</div></div>
     <div class="stat"><div class="num" id="stat-selected" style="color:#e74c3c">0</div><div class="label">Selected</div></div>
+  </div>
+</div>
+
+<!-- Hub Integration Bar -->
+<div class="hub-bar" id="hub-bar">
+  <div class="hub-status">
+    <div class="hub-dot" id="hub-dot"></div>
+    <span id="hub-status-text">Hub: Not connected</span>
+  </div>
+  <button class="btn-login" id="hub-login-btn" onclick="hubLogin()">Connect to Hub</button>
+  <button class="btn-sync" id="hub-sync-btn" onclick="hubSync()" disabled>Sync Registrations</button>
+  <span class="hub-info" id="hub-info"></span>
+  <div class="hub-mode">
+    <input type="checkbox" id="auto-book-toggle" onchange="toggleAutoBook()" />
+    <label for="auto-book-toggle">Auto-Book via Hub</label>
+  </div>
+  <button class="btn-sync" onclick="showServerConfig()" style="background:#636e72;font-size:10px;padding:3px 8px;">Server</button>
+</div>
+
+<!-- Server Config Modal -->
+<div class="overlay" id="cfg-overlay" onclick="hideServerConfig()"></div>
+<div class="server-config" id="server-config">
+  <h3>Local Server Settings</h3>
+  <p style="font-size:12px;color:#636e72;margin-bottom:8px;">The Hub bot runs on your local machine via the API server.</p>
+  <input type="text" id="server-url" placeholder="http://localhost:3002" />
+  <p style="font-size:11px;color:#999;margin-bottom:12px;">Start the server: <code>uvicorn server:app --reload --port 3002</code></p>
+  <div class="cfg-btns">
+    <button onclick="hideServerConfig()" style="background:#e0e0e0;color:#333;">Cancel</button>
+    <button onclick="saveServerConfig()" style="background:#153D63;color:white;">Save</button>
   </div>
 </div>
 
@@ -332,6 +418,7 @@
               <button class="today-btn" onclick="calToday()">Today</button>
             </div>
             <div class="cal-legend">
+              <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#27ae60"></div> Hub Registered</div>
               <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#153D63"></div> My Home</div>
               <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#C5A355"></div> My Affinity</div>
               <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fff8e6;border:1px solid #f0d78c"></div> Available</div>
@@ -915,8 +1002,489 @@ function filterForSlot(isoDate, slot) {
 // Enter key on address
 document.getElementById('user-address').addEventListener('keydown', e => { if (e.key === 'Enter') geocodeAddress(); });
 
+// ── Hub Integration ──
+let SERVER_URL = localStorage.getItem('provisors-server-url') || 'http://localhost:3002';
+let hubConnected = false;
+let hubSyncData = null;
+let hubRegistrations = []; // parsed: { name, date, startTime, endTime, type, location, eventId, viewUrl, calendarUrl }
+let autoBookEnabled = localStorage.getItem('provisors-auto-book') === 'true';
+
+// Hub state UI
+function updateHubUI(state, message) {
+  const dot = document.getElementById('hub-dot');
+  const text = document.getElementById('hub-status-text');
+  const syncBtn = document.getElementById('hub-sync-btn');
+  const loginBtn = document.getElementById('hub-login-btn');
+  dot.className = 'hub-dot ' + state;
+  text.textContent = message;
+  syncBtn.disabled = state !== 'connected';
+  loginBtn.textContent = state === 'connected' ? 'Reconnect' : 'Connect to Hub';
+}
+
+// Server config
+function showServerConfig() {
+  document.getElementById('server-url').value = SERVER_URL;
+  document.getElementById('server-config').classList.add('show');
+  document.getElementById('cfg-overlay').classList.add('show');
+}
+function hideServerConfig() {
+  document.getElementById('server-config').classList.remove('show');
+  document.getElementById('cfg-overlay').classList.remove('show');
+}
+function saveServerConfig() {
+  SERVER_URL = document.getElementById('server-url').value.trim().replace(/\/$/, '');
+  localStorage.setItem('provisors-server-url', SERVER_URL);
+  hideServerConfig();
+}
+
+// Auto-book toggle
+function toggleAutoBook() {
+  autoBookEnabled = document.getElementById('auto-book-toggle').checked;
+  localStorage.setItem('provisors-auto-book', autoBookEnabled);
+}
+
+// Parse Hub registration card text into structured data
+function parseHubRegistration(card) {
+  const text = card.text || '';
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+  if (lines.length < 3) return null;
+
+  // Line 0: "SoCal Cannabis Affinity Group, Virtual - February 2026"
+  const nameLine = lines[0];
+  const nameMatch = nameLine.match(/^(.+?),\s*(Virtual|In-Person)\s*-\s*(.+)$/);
+  if (!nameMatch) return null;
+
+  const eventName = nameMatch[1].trim();
+  const location = nameMatch[2];
+  const monthYear = nameMatch[3];
+
+  // Line 1: "Tuesday, February 24, 2026, 11:30 AM" (start)
+  // Line 2: "Tuesday, February 24, 2026, 01:30 PM" (end)
+  const startDate = lines[1];
+  const endDate = lines[2];
+
+  // Line 3: "Pacific" (timezone)
+  // Line 4: "Affinity Group Meeting" or "Home Group Meeting"
+  const eventType = lines.find(l => l.includes('Group Meeting')) || '';
+  const isHome = eventType.includes('Home');
+
+  // Extract links
+  const links = card.links || [];
+  const viewLink = links.find(l => l.text === 'View');
+  const calLink = links.find(l => l.text === 'Add to Calendar');
+  const cancelLink = links.find(l => l.text === 'Cancel');
+
+  // Parse actual date
+  const dateMatch = startDate.match(/\w+,\s+(\w+)\s+(\d+),\s+(\d{4}),?\s+(\d+:\d+\s+\w+)/);
+  let parsedDate = null;
+  if (dateMatch) {
+    parsedDate = new Date(`${dateMatch[1]} ${dateMatch[2]}, ${dateMatch[3]} ${dateMatch[4]}`);
+  }
+
+  return {
+    eventName,
+    location,
+    monthYear,
+    startDate,
+    endDate,
+    eventType: isHome ? 'Home' : 'Affinity',
+    parsedDate,
+    viewUrl: viewLink ? viewLink.href : null,
+    calendarUrl: calLink ? calLink.href : null,
+    cancelUrl: cancelLink ? cancelLink.href : null,
+  };
+}
+
+// Parse Hub upcoming event card text
+function parseHubEvent(card) {
+  const text = card.text || '';
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+  if (lines.length < 2) return null;
+
+  const nameLine = lines[0];
+  // Some events: "Event Name, Virtual - March 2026", others: "Event Name- April 2026"
+  const nameMatch = nameLine.match(/^(.+?)(?:,\s*(Virtual|In-Person))?\s*-\s*(.+)$/);
+  if (!nameMatch) return null;
+
+  const eventName = nameMatch[1].trim();
+  const location = nameMatch[2] || 'TBD';
+  const monthYear = nameMatch[3];
+
+  const links = card.links || [];
+  const viewLink = links.find(l => l.text === 'View');
+
+  const dateMatch = (lines[1] || '').match(/\w+,\s+(\w+)\s+(\d+)(?:,\s+(\d{4}))?/);
+  let parsedDate = null;
+  if (dateMatch) {
+    const year = dateMatch[3] || new Date().getFullYear();
+    parsedDate = new Date(`${dateMatch[1]} ${dateMatch[2]}, ${year}`);
+  }
+
+  return {
+    eventName,
+    location,
+    monthYear,
+    startDate: lines[1] || '',
+    endDate: lines[2] || '',
+    parsedDate,
+    viewUrl: viewLink ? viewLink.href : null,
+  };
+}
+
+// Fuzzy match a Hub event name to a GROUPS entry
+function matchHubToGroup(hubName) {
+  const clean = hubName.toLowerCase()
+    .replace(/\s*(affinity|home)\s*group/gi, '')
+    .replace(/\s*-\s*greater\s*los\s*angeles/gi, '')
+    .replace(/[,\-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  let bestIdx = -1, bestScore = 0;
+  GROUPS.forEach((g, idx) => {
+    const gClean = g.name.toLowerCase().replace(/[,\-]/g, ' ').replace(/\s+/g, ' ').trim();
+    // Direct include check
+    if (clean.includes(gClean) || gClean.includes(clean)) {
+      const score = Math.min(clean.length, gClean.length) / Math.max(clean.length, gClean.length);
+      if (score > bestScore) { bestScore = score; bestIdx = idx; }
+    }
+    // Word overlap
+    const hubWords = clean.split(' ');
+    const gWords = gClean.split(' ');
+    const overlap = hubWords.filter(w => gWords.some(gw => gw.includes(w) || w.includes(gw))).length;
+    const score = overlap / Math.max(hubWords.length, gWords.length);
+    if (score > bestScore) { bestScore = score; bestIdx = idx; }
+  });
+  return bestScore > 0.4 ? bestIdx : -1;
+}
+
+// Hub Login
+async function hubLogin() {
+  updateHubUI('syncing', 'Hub: Connecting...');
+  try {
+    const res = await fetch(`${SERVER_URL}/api/hub/login`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      hubConnected = true;
+      updateHubUI('connected', 'Hub: Connected');
+    } else {
+      updateHubUI('error', 'Hub: Login failed');
+    }
+  } catch (e) {
+    updateHubUI('error', `Hub: Server unreachable`);
+    console.error('Hub login error:', e);
+  }
+}
+
+// Hub Full Sync
+async function hubSync() {
+  updateHubUI('syncing', 'Hub: Syncing...');
+  document.getElementById('hub-sync-btn').disabled = true;
+  document.getElementById('hub-info').textContent = 'Scraping registrations and events...';
+  try {
+    const res = await fetch(`${SERVER_URL}/api/hub/sync`);
+    hubSyncData = await res.json();
+    hubConnected = true;
+
+    // Parse registrations
+    hubRegistrations = [];
+    const regCards = hubSyncData.registrations?.cards || [];
+    regCards.forEach(card => {
+      const parsed = parseHubRegistration(card);
+      if (parsed) hubRegistrations.push(parsed);
+    });
+
+    // Deduplicate by eventName + startDate
+    const seen = new Set();
+    hubRegistrations = hubRegistrations.filter(r => {
+      const key = r.eventName + '|' + r.startDate;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    // Auto-select matched groups
+    let matched = 0;
+    hubRegistrations.forEach(reg => {
+      const idx = matchHubToGroup(reg.eventName);
+      if (idx >= 0) {
+        reg.matchedGroupIdx = idx;
+        if (!selectedMeetings.has(idx)) {
+          selectedMeetings.add(idx);
+          matched++;
+        }
+      }
+    });
+
+    const ts = hubSyncData.timestamp ? new Date(hubSyncData.timestamp).toLocaleTimeString() : 'now';
+    updateHubUI('connected', `Hub: Synced at ${ts}`);
+    document.getElementById('hub-info').textContent =
+      `${hubRegistrations.length} registrations found, ${matched} new matches added`;
+
+    // Save and re-render
+    saveSelections();
+    localStorage.setItem('provisors-hub-data', JSON.stringify({
+      registrations: hubRegistrations,
+      timestamp: hubSyncData.timestamp,
+    }));
+    applyFilters();
+
+  } catch (e) {
+    updateHubUI('error', 'Hub: Sync failed');
+    document.getElementById('hub-info').textContent = e.message;
+    console.error('Hub sync error:', e);
+  }
+  document.getElementById('hub-sync-btn').disabled = !hubConnected;
+}
+
+// Register for event via Hub bot
+async function hubRegister(eventUrl) {
+  if (!hubConnected) { alert('Connect to Hub first'); return; }
+  try {
+    const res = await fetch(`${SERVER_URL}/api/hub/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_url: eventUrl }),
+    });
+    const result = await res.json();
+    if (result.success) {
+      alert('Registration confirmed!');
+      hubSync(); // re-sync to update
+    } else {
+      alert('Registration may not have completed. Check the Hub.\n\n' + (result.page_text || '').substring(0, 200));
+    }
+  } catch (e) {
+    alert('Error registering: ' + e.message);
+  }
+}
+
+// Check if a group is Hub-registered
+function isHubRegistered(groupIdx) {
+  return hubRegistrations.some(r => r.matchedGroupIdx === groupIdx);
+}
+
+// Check if a date+slot has a Hub registration
+function getHubRegForDate(dateStr, slot) {
+  return hubRegistrations.filter(r => {
+    if (!r.parsedDate) return false;
+    return r.parsedDate.toDateString() === dateStr;
+  });
+}
+
+// Load cached hub data on startup
+function loadHubData() {
+  try {
+    const cached = JSON.parse(localStorage.getItem('provisors-hub-data') || 'null');
+    if (cached && cached.registrations) {
+      hubRegistrations = cached.registrations;
+      // Re-match groups
+      hubRegistrations.forEach(reg => {
+        reg.matchedGroupIdx = matchHubToGroup(reg.eventName);
+        if (reg.matchedGroupIdx >= 0 && !selectedMeetings.has(reg.matchedGroupIdx)) {
+          selectedMeetings.add(reg.matchedGroupIdx);
+        }
+      });
+      const ts = cached.timestamp ? new Date(cached.timestamp).toLocaleTimeString() : '';
+      if (hubRegistrations.length > 0) {
+        document.getElementById('hub-info').textContent =
+          `Cached: ${hubRegistrations.length} registrations (synced ${ts})`;
+      }
+    }
+  } catch(e) {}
+  document.getElementById('auto-book-toggle').checked = autoBookEnabled;
+}
+
+// ── Override renderTable to show Hub badges ──
+const _origRenderTable = renderTable;
+renderTable = function() {
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = filtered.map(g => {
+    const idx = GROUPS.indexOf(g);
+    const checked = selectedMeetings.has(idx) ? 'checked' : '';
+    const hubReg = isHubRegistered(idx);
+    const hubBadge = hubReg ? '<span class="hub-reg-badge">HUB</span>' : '';
+    const rowClass = `${selectedMeetings.has(idx)?'selected':''} ${hubReg?'hub-registered':''}`;
+    return `<tr onclick="focusGroup(${idx})" data-idx="${idx}" class="${rowClass}">
+      <td class="cb-col" onclick="event.stopPropagation()"><input type="checkbox" ${checked} onchange="toggleSelection(${idx},this.checked)" /></td>
+      <td><strong>${g.name}</strong>${hubBadge}<br><span style="color:#636e72;font-size:11px">${g.leader}</span></td>
+      <td><span class="badge ${g.type.toLowerCase()}">${g.type}</span></td>
+      <td>${g.city}</td>
+      <td style="white-space:nowrap">${g.day}</td>
+      <td style="white-space:nowrap">${g.time}</td>
+      <td class="distance-cell">${g.distance!==null?g.distance.toFixed(1)+' mi':'—'}</td></tr>`;
+  }).join('');
+  document.getElementById('table-footer').textContent = `Showing ${filtered.length} of ${GROUPS.length} groups`;
+};
+
+// ── Override renderCalendar to show Hub registrations ──
+const _origRenderCalendar = renderCalendar;
+renderCalendar = function() {
+  const grid = document.getElementById('cal-grid');
+  if (!grid) return;
+  document.getElementById('cal-month-title').textContent = `${MONTH_NAMES[calMonth]} ${calYear}`;
+
+  const firstDay = new Date(calYear, calMonth, 1);
+  const lastDay = new Date(calYear, calMonth + 1, 0);
+  const startPad = firstDay.getDay();
+  const daysInMonth = lastDay.getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  const meetingsByDate = {};
+  GROUPS.forEach((g, idx) => {
+    const parsed = parseDayPattern(g.day);
+    if (!parsed) return;
+    const date = getNthWeekday(calYear, calMonth, parsed.nth, parsed.weekdayIndex);
+    if (!date) return;
+    const key = date.toDateString();
+    if (!meetingsByDate[key]) meetingsByDate[key] = { booked: [], available: [], hubBooked: [] };
+    const slot = getTimeSlot(g.time);
+    const hubReg = isHubRegistered(idx);
+    if (hubReg) {
+      meetingsByDate[key].hubBooked.push({ idx, slot, group: g });
+    } else if (selectedMeetings.has(idx)) {
+      meetingsByDate[key].booked.push({ idx, slot, group: g });
+    } else {
+      meetingsByDate[key].available.push({ idx, slot, group: g });
+    }
+  });
+
+  // Also add unmatched Hub registrations
+  hubRegistrations.forEach(reg => {
+    if (reg.matchedGroupIdx >= 0) return; // already shown via groups
+    if (!reg.parsedDate) return;
+    if (reg.parsedDate.getMonth() !== calMonth || reg.parsedDate.getFullYear() !== calYear) return;
+    const key = reg.parsedDate.toDateString();
+    if (!meetingsByDate[key]) meetingsByDate[key] = { booked: [], available: [], hubBooked: [] };
+    const slot = reg.startDate.includes('AM') && !reg.startDate.includes('11') && !reg.startDate.includes('12') ? 'morning' : 'lunch';
+    meetingsByDate[key].hubBooked.push({
+      idx: -1, slot, group: { name: reg.eventName, type: reg.eventType, region: '', leader: '', day: '', time: reg.startDate, city: reg.location }
+    });
+  });
+
+  let html = '';
+  const prevMonthDays = new Date(calYear, calMonth, 0).getDate();
+  for (let i = startPad - 1; i >= 0; i--) {
+    html += `<div class="cal-day outside"><div class="cal-day-num">${prevMonthDays - i}</div></div>`;
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(calYear, calMonth, d);
+    const isToday = date.getTime() === today.getTime();
+    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+    const key = date.toDateString();
+    const meetings = meetingsByDate[key];
+    let classes = 'cal-day';
+    if (isToday) classes += ' today';
+    if (isWeekend) classes += ' weekend';
+
+    html += `<div class="${classes}"><div class="cal-day-num">${d}</div><div class="cal-slots">`;
+
+    if (isWeekend) { html += '</div></div>'; continue; }
+
+    ['morning', 'lunch', 'evening'].forEach(slot => {
+      const slotLabel = slot === 'morning' ? 'AM' : slot === 'lunch' ? 'PM' : 'EVE';
+      const hubBooked = meetings ? meetings.hubBooked.filter(m => m.slot === slot) : [];
+      const booked = meetings ? meetings.booked.filter(m => m.slot === slot) : [];
+      const avail = meetings ? meetings.available.filter(m => m.slot === slot) : [];
+
+      // Hub-registered meetings (green)
+      hubBooked.forEach(m => {
+        html += `<div class="cal-slot hub-booked" onmouseenter="showTooltip(event,${m.idx >= 0 ? m.idx : -1},true)" onmouseleave="hideTooltip()">
+          <span class="slot-label">${slotLabel}</span><span class="slot-name">${m.group.name}</span></div>`;
+      });
+
+      // User-selected booked meetings
+      if (booked.length > 0) {
+        booked.forEach(m => {
+          const cls = m.group.type === 'Affinity' ? 'booked-affinity' : 'booked';
+          html += `<div class="cal-slot ${cls}" onmouseenter="showTooltip(event,${m.idx},true)" onmouseleave="hideTooltip()">
+            <span class="slot-label">${slotLabel}</span><span class="slot-name">${m.group.name}</span></div>`;
+        });
+      }
+
+      // Available
+      if (avail.length > 0) {
+        const label = (hubBooked.length > 0 || booked.length > 0) ? '+' : slotLabel;
+        html += `<div class="cal-slot available" onclick="filterForSlot('${date.toISOString()}','${slot}')"
+          onmouseenter="showSlotTooltip(event,'${key}','${slot}',false)" onmouseleave="hideTooltip()">
+          <span class="slot-label">${label}</span><span class="slot-name">${avail.length} available</span>
+          <span class="slot-count">${avail.length}</span></div>`;
+      } else if (hubBooked.length === 0 && booked.length === 0) {
+        html += `<div class="cal-slot open"><span class="slot-label">${slotLabel}</span><span class="slot-name">open</span></div>`;
+      }
+    });
+    html += '</div></div>';
+  }
+
+  const totalCells = startPad + daysInMonth;
+  const remaining = (7 - (totalCells % 7)) % 7;
+  for (let i = 1; i <= remaining; i++) {
+    html += `<div class="cal-day outside"><div class="cal-day-num">${i}</div></div>`;
+  }
+  grid.innerHTML = html;
+};
+
+// ── Override renderMyMeetings to show Hub badges ──
+const _origRenderMyMeetings = renderMyMeetings;
+renderMyMeetings = function() {
+  const body = document.getElementById('my-meetings-body');
+  const count = document.getElementById('my-meetings-count');
+  const panel = document.getElementById('my-meetings-panel');
+  count.textContent = selectedMeetings.size;
+  document.getElementById('stat-selected').textContent = selectedMeetings.size;
+  if (selectedMeetings.size === 0) { body.innerHTML = '<div class="my-meetings-empty">Check meetings above to add them to your list</div>'; return; }
+  if (selectedMeetings.size === 1 && panel.classList.contains('collapsed')) { panel.classList.remove('collapsed'); panel.classList.add('expanded'); }
+  const sorted = [...selectedMeetings].sort((a, b) => daySort(GROUPS[a].day) - daySort(GROUPS[b].day));
+  body.innerHTML = sorted.map(idx => {
+    const g = GROUPS[idx]; const dist = g.distance !== null ? ` &bull; ${g.distance.toFixed(1)} mi` : '';
+    const hubReg = isHubRegistered(idx);
+    const hubBadge = hubReg ? ' <span class="hub-reg-badge">HUB</span>' : '';
+    const bookBtn = (!hubReg && autoBookEnabled && hubConnected)
+      ? `<button onclick="event.stopPropagation(); bookMeeting(${idx})" style="background:#27ae60;color:white;border:none;border-radius:3px;padding:2px 6px;font-size:10px;font-weight:600;cursor:pointer;margin-right:4px;">Book</button>`
+      : '';
+    return `<div class="my-meeting-item"><div class="my-meeting-info"><strong>${g.name}</strong>${hubBadge}
+      <div class="meta">${g.day} &bull; ${g.time} &bull; ${g.city}${dist}</div></div>
+      ${bookBtn}<button class="my-meeting-remove" onclick="removeSelection(${idx})" title="Remove">&times;</button></div>`;
+  }).join('');
+};
+
+// Book a meeting via Hub
+async function bookMeeting(idx) {
+  if (!hubConnected) { alert('Connect to Hub first'); return; }
+  const g = GROUPS[idx];
+  // Try to find matching event in upcoming events
+  const upcomingEvents = hubSyncData?.upcoming_events?.events || [];
+  let matchedEvent = null;
+  for (const evt of upcomingEvents) {
+    const parsed = parseHubEvent(evt);
+    if (!parsed) continue;
+    const matchIdx = matchHubToGroup(parsed.eventName);
+    if (matchIdx === idx) { matchedEvent = parsed; break; }
+  }
+  if (matchedEvent && matchedEvent.viewUrl) {
+    if (confirm(`Book "${g.name}" via the ProVisors Hub?\n\nThis will open the registration page and attempt to register you.`)) {
+      await hubRegister(matchedEvent.viewUrl);
+    }
+  } else {
+    // Fallback: open Hub event search
+    if (confirm(`Could not find "${g.name}" in upcoming events.\n\nOpen the Hub event search instead?`)) {
+      window.open('https://hub.provisors.com/event-search', '_blank');
+    }
+  }
+}
+
+// ── Override openHub to be smarter ──
+openHub = function() {
+  if (hubConnected) {
+    window.open('https://hub.provisors.com/nc__myregistrations', '_blank');
+  } else {
+    window.open('https://hub.provisors.com/personalsnapshot', '_blank');
+  }
+};
+
 // ── Init ──
 loadSelections();
+loadHubData();
 applyFilters();
 </script>
 </body>
