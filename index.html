@@ -720,13 +720,20 @@ function applyFilters() {
   const type = document.getElementById('filter-type').value;
   const day = document.getElementById('filter-day').value;
   const sortField = document.getElementById('sort-by').value;
-  filtered = GROUPS.filter(g => {
-    if (region && g.region !== region) return false;
-    if (type && g.type !== type) return false;
-    if (day && !g.day.includes(day)) return false;
-    if (search && !(g.name.toLowerCase().includes(search) || g.leader.toLowerCase().includes(search) || g.city.toLowerCase().includes(search) || g.region.toLowerCase().includes(search))) return false;
-    return true;
-  });
+
+  // If a calendar slot filter is active, use that instead of normal filters
+  if (slotFilterIndices) {
+    filtered = GROUPS.filter((g, idx) => slotFilterIndices.has(idx));
+  } else {
+    filtered = GROUPS.filter(g => {
+      if (region && g.region !== region) return false;
+      if (type && g.type !== type) return false;
+      if (day && !g.day.includes(day)) return false;
+      if (search && !(g.name.toLowerCase().includes(search) || g.leader.toLowerCase().includes(search) || g.city.toLowerCase().includes(search) || g.region.toLowerCase().includes(search))) return false;
+      return true;
+    });
+  }
+
   filtered.sort((a, b) => {
     switch(sortField) {
       case 'distance': return (a.distance??9999) - (b.distance??9999);
@@ -756,7 +763,10 @@ function renderTable() {
       <td style="white-space:nowrap">${g.time}</td>
       <td class="distance-cell">${g.distance!==null?g.distance.toFixed(1)+' mi':'—'}</td></tr>`;
   }).join('');
-  document.getElementById('table-footer').textContent = `Showing ${filtered.length} of ${GROUPS.length} groups`;
+  const footerText = slotFilterLabel
+    ? `Showing ${filtered.length} groups — ${slotFilterLabel}`
+    : `Showing ${filtered.length} of ${GROUPS.length} groups`;
+  document.getElementById('table-footer').textContent = footerText;
 }
 
 function renderMarkers() {
@@ -987,17 +997,54 @@ function positionTooltip(e) {
 }
 function hideTooltip() { tooltip.classList.remove('show'); }
 
-// Click an available calendar slot → filter sidebar to that day + time slot
+// Click an available calendar slot → filter sidebar to exactly those groups
+let slotFilterIndices = null; // when set, applyFilters uses this as an override
+
 function filterForSlot(isoDate, slot) {
   const date = new Date(isoDate);
-  const dayName = DAY_NAMES[date.getDay()];
-  document.getElementById('filter-day').value = dayName;
+  // Find the exact group indices that meet on this date + slot
+  const matchIndices = [];
+  GROUPS.forEach((g, idx) => {
+    if (selectedMeetings.has(idx)) return; // skip already booked
+    const parsed = parseDayPattern(g.day);
+    if (!parsed) return;
+    const meetDate = getNthWeekday(date.getFullYear(), date.getMonth(), parsed.nth, parsed.weekdayIndex);
+    if (!meetDate || meetDate.toDateString() !== date.toDateString()) return;
+    if (getTimeSlot(g.time) !== slot) return;
+    matchIndices.push(idx);
+  });
+
+  if (matchIndices.length === 0) return;
+
+  // Set the override filter and clear UI filters
+  slotFilterIndices = new Set(matchIndices);
   document.getElementById('search').value = '';
   document.getElementById('filter-region').value = '';
   document.getElementById('filter-type').value = '';
+  document.getElementById('filter-day').value = '';
+
+  // Build a label for the footer
+  const slotName = slot === 'morning' ? 'Morning' : slot === 'lunch' ? 'Lunch' : 'Evening';
+  const dateLabel = date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+  slotFilterLabel = `${slotName} groups on ${dateLabel}`;
+
   applyFilters();
-  switchView('map');
+  // Scroll sidebar table to top
+  document.querySelector('.table-wrap').scrollTop = 0;
 }
+
+// Clear slot filter when user changes any filter control
+function clearSlotFilter() {
+  if (slotFilterIndices) {
+    slotFilterIndices = null;
+    slotFilterLabel = null;
+  }
+}
+['search','filter-region','filter-type','filter-day','sort-by'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', clearSlotFilter);
+});
+let slotFilterLabel = null;
 
 // Enter key on address
 document.getElementById('user-address').addEventListener('keydown', e => { if (e.key === 'Enter') geocodeAddress(); });
@@ -1313,7 +1360,10 @@ renderTable = function() {
       <td style="white-space:nowrap">${g.time}</td>
       <td class="distance-cell">${g.distance!==null?g.distance.toFixed(1)+' mi':'—'}</td></tr>`;
   }).join('');
-  document.getElementById('table-footer').textContent = `Showing ${filtered.length} of ${GROUPS.length} groups`;
+  const footerText = slotFilterLabel
+    ? `Showing ${filtered.length} groups — ${slotFilterLabel}`
+    : `Showing ${filtered.length} of ${GROUPS.length} groups`;
+  document.getElementById('table-footer').textContent = footerText;
 };
 
 // ── Override renderCalendar to show Hub registrations ──
