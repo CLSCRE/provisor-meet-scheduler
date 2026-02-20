@@ -12,7 +12,7 @@
     /* Header */
     .header {
       background: linear-gradient(135deg, #153D63 0%, #1a5276 100%);
-      color: white; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between;
+      color: white; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between;
       box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
     .header h1 { font-size: 24px; font-weight: 700; }
@@ -24,115 +24,100 @@
     .stat .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; }
 
     /* Layout */
-    .container { display: flex; height: calc(100vh - 72px); }
+    .container { display: flex; height: calc(100vh - 68px); }
     .sidebar { width: 520px; min-width: 520px; display: flex; flex-direction: column; background: white; border-right: 1px solid #dfe6e9; }
-    .map-area { flex: 1; position: relative; }
+    .right-panel { flex: 1; position: relative; display: flex; flex-direction: column; }
+
+    /* View Tabs */
+    .view-tabs {
+      display: flex; background: #f0f2f5; border-bottom: 1px solid #dfe6e9; flex-shrink: 0;
+    }
+    .view-tab {
+      flex: 1; padding: 10px 16px; text-align: center; font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none; background: transparent; color: #636e72;
+      border-bottom: 3px solid transparent; transition: all 0.2s;
+    }
+    .view-tab:hover { color: #153D63; background: #e8ecf0; }
+    .view-tab.active { color: #153D63; border-bottom-color: #C5A355; background: white; }
+    .view-content { flex: 1; position: relative; overflow: hidden; }
+    .view-pane { position: absolute; inset: 0; transition: opacity 0.2s; }
+    .view-pane.hidden { opacity: 0; pointer-events: none; z-index: 0; }
+    .view-pane.visible { opacity: 1; pointer-events: auto; z-index: 1; }
 
     /* Controls */
-    .controls { padding: 14px 16px; border-bottom: 1px solid #eee; background: #fafafa; }
-    .address-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .controls { padding: 12px 16px; border-bottom: 1px solid #eee; background: #fafafa; }
+    .address-row { display: flex; gap: 8px; margin-bottom: 8px; }
     .address-row input {
-      flex: 1; padding: 9px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;
+      flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;
       outline: none; transition: border-color 0.2s;
     }
     .address-row input:focus { border-color: #153D63; }
     .address-row button {
-      padding: 9px 16px; background: #153D63; color: white; border: none; border-radius: 6px;
-      font-size: 13px; cursor: pointer; white-space: nowrap; font-weight: 600;
-      transition: background 0.2s;
+      padding: 8px 14px; background: #153D63; color: white; border: none; border-radius: 6px;
+      font-size: 13px; cursor: pointer; white-space: nowrap; font-weight: 600; transition: background 0.2s;
     }
     .address-row button:hover { background: #1a5276; }
     .address-row button.secondary { background: #C5A355; }
     .address-row button.secondary:hover { background: #b8963e; }
-
-    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
     .filter-row select, .filter-row input {
-      padding: 7px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px;
-      background: white; outline: none;
+      padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; background: white; outline: none;
     }
-    .filter-row input { flex: 1; min-width: 120px; }
-    .filter-row select { min-width: 100px; }
+    .filter-row input { flex: 1; min-width: 100px; }
+    .filter-row select { min-width: 90px; }
 
     /* Table */
     .table-wrap { flex: 1; overflow-y: auto; }
     .table-wrap table { width: 100%; border-collapse: collapse; font-size: 12px; }
     .table-wrap thead { position: sticky; top: 0; z-index: 2; }
     .table-wrap th {
-      background: #153D63; color: white; padding: 8px 10px; text-align: left;
+      background: #153D63; color: white; padding: 7px 8px; text-align: left;
       font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;
       cursor: pointer; user-select: none; white-space: nowrap;
     }
     .table-wrap th:hover { background: #1a5276; }
-    .table-wrap th .sort-arrow { margin-left: 4px; font-size: 10px; }
-    .table-wrap td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; }
+    .table-wrap td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; }
     .table-wrap tr:hover { background: #f8f9ff; cursor: pointer; }
     .table-wrap tr.selected { background: #e8f0fe; }
-
-    .badge {
-      display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px;
-      font-weight: 600; text-transform: uppercase;
-    }
+    .badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
     .badge.home { background: #dfe6fd; color: #2952cc; }
     .badge.affinity { background: #fde8d0; color: #b35c00; }
-
     .distance-cell { font-weight: 600; color: #153D63; white-space: nowrap; }
-
-    /* Checkbox column */
-    .table-wrap th.cb-col, .table-wrap td.cb-col { width: 32px; text-align: center; padding: 7px 4px; }
+    .table-wrap th.cb-col, .table-wrap td.cb-col { width: 28px; text-align: center; padding: 6px 2px; }
     .table-wrap td.cb-col { cursor: default; }
-    .cb-col input[type="checkbox"] {
-      width: 15px; height: 15px; cursor: pointer; accent-color: #C5A355;
-    }
-
-    .table-footer {
-      padding: 8px 16px; background: #fafafa; border-top: 1px solid #eee;
-      font-size: 12px; color: #636e72;
-    }
+    .cb-col input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-color: #C5A355; }
+    .table-footer { padding: 6px 16px; background: #fafafa; border-top: 1px solid #eee; font-size: 12px; color: #636e72; }
 
     /* My Meetings Panel */
-    .my-meetings {
-      border-top: 2px solid #C5A355; background: #fdfaf3; overflow: hidden;
-      transition: max-height 0.3s ease;
-    }
-    .my-meetings.collapsed { max-height: 42px; }
-    .my-meetings.expanded { max-height: 50vh; }
+    .my-meetings { border-top: 2px solid #C5A355; background: #fdfaf3; overflow: hidden; transition: max-height 0.3s ease; }
+    .my-meetings.collapsed { max-height: 38px; }
+    .my-meetings.expanded { max-height: 45vh; }
     .my-meetings-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 16px; cursor: pointer; user-select: none;
+      padding: 8px 16px; cursor: pointer; user-select: none;
     }
-    .my-meetings-header h3 {
-      font-size: 13px; font-weight: 700; color: #153D63; display: flex; align-items: center; gap: 8px;
-    }
+    .my-meetings-header h3 { font-size: 13px; font-weight: 700; color: #153D63; display: flex; align-items: center; gap: 8px; }
     .my-meetings-header .count-badge {
       background: #C5A355; color: white; font-size: 11px; font-weight: 700;
       padding: 1px 7px; border-radius: 10px; min-width: 20px; text-align: center;
     }
     .my-meetings-header .toggle-arrow { font-size: 12px; color: #636e72; transition: transform 0.3s; }
     .my-meetings.expanded .toggle-arrow { transform: rotate(180deg); }
-    .my-meetings-actions {
-      display: flex; gap: 6px; align-items: center;
-    }
+    .my-meetings-actions { display: flex; gap: 6px; align-items: center; }
     .my-meetings-actions button {
-      padding: 4px 10px; font-size: 11px; border-radius: 4px; cursor: pointer;
-      font-weight: 600; border: none; transition: background 0.2s;
+      padding: 4px 10px; font-size: 11px; border-radius: 4px; cursor: pointer; font-weight: 600; border: none; transition: background 0.2s;
     }
     .btn-hub { background: #153D63; color: white; }
     .btn-hub:hover { background: #1a5276; }
     .btn-clear { background: #e0e0e0; color: #333; }
     .btn-clear:hover { background: #ccc; }
-    .my-meetings-body { padding: 0 16px 10px; overflow-y: auto; max-height: calc(50vh - 42px); }
-    .my-meeting-item {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 6px 0; border-bottom: 1px solid #f0e8d0; font-size: 12px;
-    }
+    .my-meetings-body { padding: 0 16px 8px; overflow-y: auto; max-height: calc(45vh - 38px); }
+    .my-meeting-item { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #f0e8d0; font-size: 12px; }
     .my-meeting-item:last-child { border-bottom: none; }
     .my-meeting-info { flex: 1; }
     .my-meeting-info strong { color: #153D63; }
     .my-meeting-info .meta { color: #636e72; font-size: 11px; }
-    .my-meeting-remove {
-      background: none; border: none; color: #c0392b; cursor: pointer;
-      font-size: 16px; padding: 2px 6px; border-radius: 4px; line-height: 1;
-    }
+    .my-meeting-remove { background: none; border: none; color: #c0392b; cursor: pointer; font-size: 16px; padding: 2px 6px; border-radius: 4px; line-height: 1; }
     .my-meeting-remove:hover { background: #fde8e8; }
     .my-meetings-empty { color: #999; font-size: 12px; padding: 4px 0; font-style: italic; }
 
@@ -141,25 +126,98 @@
     .home-marker { background: #153D63; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
     .affinity-marker { background: #C5A355; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
     .user-marker { background: #e74c3c; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
-
     .leaflet-popup-content { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13px; line-height: 1.5; }
     .leaflet-popup-content strong { color: #153D63; }
     .popup-distance { margin-top: 6px; padding-top: 6px; border-top: 1px solid #eee; color: #C5A355; font-weight: 600; }
-
-    /* Legend */
     .map-legend {
       position: absolute; bottom: 20px; right: 20px; z-index: 1000;
-      background: white; padding: 12px 16px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      font-size: 12px;
+      background: white; padding: 10px 14px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); font-size: 12px;
     }
-    .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
     .legend-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+
+    /* ── Calendar View ── */
+    .calendar-container { height: 100%; display: flex; flex-direction: column; background: white; overflow: hidden; }
+    .cal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 20px; background: #fafafa; border-bottom: 1px solid #eee; flex-shrink: 0;
+    }
+    .cal-header h2 { font-size: 18px; font-weight: 700; color: #153D63; }
+    .cal-nav { display: flex; gap: 8px; align-items: center; }
+    .cal-nav button {
+      padding: 6px 12px; background: #153D63; color: white; border: none; border-radius: 6px;
+      font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s;
+    }
+    .cal-nav button:hover { background: #1a5276; }
+    .cal-nav button.today-btn { background: #C5A355; }
+    .cal-nav button.today-btn:hover { background: #b8963e; }
+    .cal-legend {
+      display: flex; gap: 14px; align-items: center; font-size: 11px; color: #636e72;
+    }
+    .cal-legend-item { display: flex; align-items: center; gap: 4px; }
+    .cal-legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+    .cal-grid-wrap { flex: 1; overflow-y: auto; padding: 12px 16px; }
+    .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
+    .cal-weekday { text-align: center; font-size: 11px; font-weight: 700; color: #636e72; text-transform: uppercase; padding: 4px; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+
+    .cal-day {
+      min-height: 100px; border: 1px solid #e8ecf0; border-radius: 6px; padding: 4px;
+      background: white; display: flex; flex-direction: column; transition: box-shadow 0.2s;
+    }
+    .cal-day:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .cal-day.outside { background: #f8f9fa; opacity: 0.5; }
+    .cal-day.today { border-color: #C5A355; border-width: 2px; box-shadow: 0 0 0 1px #C5A35533; }
+    .cal-day.weekend { background: #fafbfc; }
+    .cal-day-num {
+      font-size: 12px; font-weight: 700; color: #2d3436; padding: 2px 4px; margin-bottom: 2px;
+    }
+    .cal-day.today .cal-day-num { color: #C5A355; }
+    .cal-day.outside .cal-day-num { color: #b2bec3; }
+
+    .cal-slots { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+    .cal-slot {
+      border-radius: 3px; padding: 2px 4px; font-size: 9px; cursor: pointer;
+      display: flex; align-items: center; gap: 3px; min-height: 18px; transition: all 0.15s;
+    }
+    .cal-slot .slot-label { font-weight: 600; width: 12px; flex-shrink: 0; text-transform: uppercase; }
+
+    /* Slot states */
+    .cal-slot.open { background: #f0f7f0; border: 1px dashed #b8dab8; color: #7fba7f; }
+    .cal-slot.open:hover { background: #e0f0e0; border-color: #7fba7f; }
+    .cal-slot.booked { background: #153D63; color: white; border: 1px solid #153D63; cursor: default; }
+    .cal-slot.booked .slot-name { font-weight: 600; }
+    .cal-slot.booked-affinity { background: #C5A355; color: white; border: 1px solid #C5A355; cursor: default; }
+    .cal-slot.available { background: #fff8e6; border: 1px solid #f0d78c; color: #b38f00; }
+    .cal-slot.available:hover { background: #fff0c0; }
+    .cal-slot .slot-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cal-slot .slot-count {
+      background: rgba(255,255,255,0.3); border-radius: 8px; padding: 0 4px;
+      font-size: 8px; font-weight: 700; flex-shrink: 0;
+    }
+
+    /* Slot tooltip */
+    .slot-tooltip {
+      display: none; position: fixed; z-index: 10000; background: white; color: #2d3436;
+      padding: 10px 14px; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      font-size: 12px; max-width: 280px; border-left: 4px solid #153D63;
+    }
+    .slot-tooltip.show { display: block; }
+    .slot-tooltip h4 { color: #153D63; margin-bottom: 4px; font-size: 13px; }
+    .slot-tooltip .tt-groups { margin-top: 6px; }
+    .slot-tooltip .tt-group {
+      padding: 3px 0; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between;
+    }
+    .slot-tooltip .tt-group:last-child { border-bottom: none; }
+    .slot-tooltip .tt-city { color: #636e72; }
 
     /* Responsive */
     @media (max-width: 1024px) {
       .container { flex-direction: column; height: auto; }
       .sidebar { width: 100%; min-width: auto; max-height: 50vh; }
-      .map-area { height: 50vh; }
+      .right-panel { height: 50vh; }
+      .cal-day { min-height: 70px; }
     }
   </style>
 </head>
@@ -221,12 +279,12 @@
         <thead>
           <tr>
             <th class="cb-col" onclick="event.stopPropagation()"></th>
-            <th onclick="sortBy('name')">Group <span class="sort-arrow"></span></th>
+            <th onclick="sortBy('name')">Group</th>
             <th onclick="sortBy('type')">Type</th>
             <th onclick="sortBy('city')">City</th>
             <th onclick="sortBy('day')">Day</th>
             <th onclick="sortBy('time')">Time</th>
-            <th onclick="sortBy('distance')" id="dist-header">Dist.</th>
+            <th onclick="sortBy('distance')">Dist.</th>
           </tr>
         </thead>
         <tbody id="table-body"></tbody>
@@ -247,64 +305,79 @@
       </div>
     </div>
   </div>
-  <div class="map-area">
-    <div id="map"></div>
-    <div class="map-legend">
-      <div class="legend-item"><div class="legend-dot" style="background:#153D63"></div> Home Group</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#C5A355"></div> Affinity Group</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div> Your Location</div>
+
+  <div class="right-panel">
+    <div class="view-tabs">
+      <button class="view-tab active" data-view="map" onclick="switchView('map')">Map</button>
+      <button class="view-tab" data-view="calendar" onclick="switchView('calendar')">Calendar</button>
+    </div>
+    <div class="view-content">
+      <!-- Map View -->
+      <div class="view-pane visible" id="view-map">
+        <div id="map"></div>
+        <div class="map-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#153D63"></div> Home Group</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#C5A355"></div> Affinity Group</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div> Your Location</div>
+        </div>
+      </div>
+      <!-- Calendar View -->
+      <div class="view-pane hidden" id="view-calendar">
+        <div class="calendar-container">
+          <div class="cal-header">
+            <div class="cal-nav">
+              <button onclick="calNav(-1)">&larr; Prev</button>
+              <h2 id="cal-month-title">February 2026</h2>
+              <button onclick="calNav(1)">Next &rarr;</button>
+              <button class="today-btn" onclick="calToday()">Today</button>
+            </div>
+            <div class="cal-legend">
+              <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#153D63"></div> My Home</div>
+              <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#C5A355"></div> My Affinity</div>
+              <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fff8e6;border:1px solid #f0d78c"></div> Available</div>
+              <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#f0f7f0;border:1px dashed #b8dab8"></div> Open Slot</div>
+            </div>
+          </div>
+          <div class="cal-grid-wrap">
+            <div class="cal-weekdays">
+              <div class="cal-weekday">Sun</div><div class="cal-weekday">Mon</div><div class="cal-weekday">Tue</div>
+              <div class="cal-weekday">Wed</div><div class="cal-weekday">Thu</div><div class="cal-weekday">Fri</div>
+              <div class="cal-weekday">Sat</div>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
+<div class="slot-tooltip" id="slot-tooltip"></div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// ── City Coordinates (approximate centers for LA-area cities) ──
+// ── City Coordinates ──
 const CITY_COORDS = {
-  "Los Angeles": [34.0522, -118.2437],
-  "Beverly Hills": [34.0736, -118.4004],
-  "Burbank": [34.1808, -118.3090],
-  "Claremont": [34.0967, -117.7198],
-  "Glendale": [34.1425, -118.2551],
-  "Hollywood": [34.0928, -118.3287],
-  "Pasadena": [34.1478, -118.1445],
-  "San Gabriel": [34.0961, -118.1058],
-  "Studio City": [34.1486, -118.3968],
-  "North Hollywood": [34.1870, -118.3813],
-  "Santa Monica": [34.0195, -118.4912],
-  "El Segundo": [33.9192, -118.4165],
-  "Manhattan Beach": [33.8847, -118.4109],
-  "Playa Vista": [33.9742, -118.4176],
-  "Torrance": [33.8358, -118.3406],
-  "Venice": [33.9850, -118.4695],
-  "Encino": [34.1592, -118.5014],
-  "Sherman Oaks": [34.1508, -118.4490],
-  "Calabasas": [34.1367, -118.6387],
-  "Woodland Hills": [34.1681, -118.6059],
-  "Westlake Village": [34.1417, -118.8053],
-  "Westlake": [34.1417, -118.8053],
-  "Oxnard": [34.1975, -119.1771],
-  "Camarillo": [34.2164, -119.0376],
-  "Simi Valley": [34.2694, -118.7815],
-  "Moorpark": [34.2856, -118.8820],
-  "Valencia": [34.4436, -118.6115],
-  "Santa Barbara": [34.4208, -119.6982],
-  "LAV/Zoom": [34.1700, -118.4400],
-  "LAV": [34.1700, -118.4400],
-  "Century City": [34.0565, -118.4173]
+  "Los Angeles":[34.0522,-118.2437],"Beverly Hills":[34.0736,-118.4004],"Burbank":[34.1808,-118.309],
+  "Claremont":[34.0967,-117.7198],"Glendale":[34.1425,-118.2551],"Hollywood":[34.0928,-118.3287],
+  "Pasadena":[34.1478,-118.1445],"San Gabriel":[34.0961,-118.1058],"Studio City":[34.1486,-118.3968],
+  "North Hollywood":[34.187,-118.3813],"Santa Monica":[34.0195,-118.4912],"El Segundo":[33.9192,-118.4165],
+  "Manhattan Beach":[33.8847,-118.4109],"Playa Vista":[33.9742,-118.4176],"Torrance":[33.8358,-118.3406],
+  "Venice":[33.985,-118.4695],"Encino":[34.1592,-118.5014],"Sherman Oaks":[34.1508,-118.449],
+  "Calabasas":[34.1367,-118.6387],"Woodland Hills":[34.1681,-118.6059],"Westlake Village":[34.1417,-118.8053],
+  "Westlake":[34.1417,-118.8053],"Oxnard":[34.1975,-119.1771],"Camarillo":[34.2164,-119.0376],
+  "Simi Valley":[34.2694,-118.7815],"Moorpark":[34.2856,-118.882],"Valencia":[34.4436,-118.6115],
+  "Santa Barbara":[34.4208,-119.6982],"LAV/Zoom":[34.17,-118.44],"LAV":[34.17,-118.44],
+  "Century City":[34.0565,-118.4173]
 };
 
-// Add slight offsets for groups in the same city so markers don't stack
 function jitter(coords, index, total) {
-  const spread = 0.006;
-  const angle = (index / total) * 2 * Math.PI;
-  const r = spread * Math.sqrt(index / total);
+  const spread = 0.006, angle = (index / total) * 2 * Math.PI, r = spread * Math.sqrt(index / total);
   return [coords[0] + r * Math.cos(angle), coords[1] + r * Math.sin(angle)];
 }
 
 // ── Groups Data ──
 const GROUPS = [
-  // LA Core - Home
   {region:"LA Core",type:"Home",name:"Beverly Hills 1",leader:"Rob Strauss",day:"2nd Tuesday",city:"Los Angeles",time:"7:30am – 9:00am"},
   {region:"LA Core",type:"Home",name:"Beverly Hills 2",leader:"Kevin Farrell",day:"3rd Wednesday",city:"Beverly Hills",time:"7:30am – 9:00am"},
   {region:"LA Core",type:"Home",name:"Beverly Hills 3",leader:"Maureen Bernstein",day:"2nd Thursday",city:"Beverly Hills",time:"7:30am – 9:00am"},
@@ -334,7 +407,6 @@ const GROUPS = [
   {region:"LA Core",type:"Home",name:"Studio City",leader:"Anthony Behar",day:"2nd Wednesday",city:"Studio City",time:"7:00am – 9:00am"},
   {region:"LA Core",type:"Home",name:"Universal City",leader:"Scott Nell",day:"3rd Wednesday",city:"North Hollywood",time:"7:30am – 9:00am"},
   {region:"LA Core",type:"Home",name:"West Hollywood",leader:"Garry Gekht",day:"2nd Thursday",city:"Beverly Hills",time:"7:30am – 9:00am"},
-  // LA Core - Affinity
   {region:"LA Core",type:"Affinity",name:"Distributors & Manufacturers",leader:"Keith Gregory",day:"3rd Wednesday",city:"Los Angeles",time:"1:45pm – 3:30pm"},
   {region:"LA Core",type:"Affinity",name:"East Valley Lawyer's",leader:"Cynthia Flynn",day:"4th Wednesday",city:"Glendale",time:"12:00pm – 1:30pm"},
   {region:"LA Core",type:"Affinity",name:"East Valley Women's",leader:"Janice Cohen",day:"4th Friday",city:"Pasadena",time:"11:30am – 1:30pm"},
@@ -344,7 +416,6 @@ const GROUPS = [
   {region:"LA Core",type:"Affinity",name:"San Gabriel Valley Real Estate",leader:"David Barulich",day:"2nd Tuesday",city:"Pasadena",time:"12:00pm – 1:30pm"},
   {region:"LA Core",type:"Affinity",name:"Seniors and Special Needs",leader:"Marty Stevens-Heebner",day:"4th Tuesday",city:"Los Angeles",time:"11:30am – 1:30pm"},
   {region:"LA Core",type:"Affinity",name:"Women's (Core)",leader:"Jae Wu",day:"3rd Monday",city:"Los Angeles",time:"11:30am – 1:30pm"},
-  // LA Westside - Home
   {region:"LA Westside",type:"Home",name:"Brentwood",leader:"Nannina Angioni",day:"3rd Thursday",city:"Los Angeles",time:"7:00am – 9:00am"},
   {region:"LA Westside",type:"Home",name:"Century City 1",leader:"Grant Withers",day:"3rd Tuesday",city:"Los Angeles",time:"7:00am – 9:00am"},
   {region:"LA Westside",type:"Home",name:"Century City 2",leader:"Jeffrey Wolf",day:"1st Thursday",city:"Los Angeles",time:"7:00am – 9:00am"},
@@ -378,7 +449,6 @@ const GROUPS = [
   {region:"LA Westside",type:"Home",name:"Westside 3",leader:"Russell Glazer",day:"1st Friday",city:"Los Angeles",time:"7:00am – 9:00am"},
   {region:"LA Westside",type:"Home",name:"Westwood",leader:"Ji Park",day:"3rd Tuesday",city:"Los Angeles",time:"7:00am – 9:00am"},
   {region:"LA Westside",type:"Home",name:"Westwood Village",leader:"Whit Prouty",day:"2nd Thursday",city:"Los Angeles",time:"7:00am – 9:00am"},
-  // LA Westside - Affinity
   {region:"LA Westside",type:"Affinity",name:"South Bay Women's",leader:"Laura Bruno",day:"2nd Friday",city:"El Segundo",time:"11:30am – 1:00pm"},
   {region:"LA Westside",type:"Affinity",name:"LAX/Long Beach Real Estate",leader:"Jennifer Goldstein",day:"2nd Wednesday",city:"El Segundo",time:"11:30am – 1:00pm"},
   {region:"LA Westside",type:"Affinity",name:"Capital Markets",leader:"Haze Walker",day:"1st Tuesday",city:"Los Angeles",time:"12:00pm – 1:30pm"},
@@ -395,7 +465,6 @@ const GROUPS = [
   {region:"LA Westside",type:"Affinity",name:"Tax Masters",leader:"Al Knobloch",day:"2nd Wednesday",city:"Los Angeles",time:"12:00pm – 1:30pm"},
   {region:"LA Westside",type:"Affinity",name:"Transactions & Transitions",leader:"Dan Fein",day:"3rd Thursday",city:"Los Angeles",time:"11:30am – 1:30pm"},
   {region:"LA Westside",type:"Affinity",name:"Women's (Westside)",leader:"Gail Goldstein",day:"3rd Monday",city:"Los Angeles",time:"12:00pm – 1:30pm"},
-  // LA Valley - Home
   {region:"LA Valley",type:"Home",name:"Calabasas 1",leader:"Scott Anderholt",day:"1st Tuesday",city:"Calabasas",time:"7:30am – 9:00am"},
   {region:"LA Valley",type:"Home",name:"Calabasas 2",leader:"Samantha Scherr",day:"1st Tuesday",city:"Calabasas",time:"11:30am – 1:00pm"},
   {region:"LA Valley",type:"Home",name:"Camarillo 1",leader:"Tom Means",day:"3rd Wednesday",city:"Camarillo",time:"7:30am – 9:00am"},
@@ -433,7 +502,6 @@ const GROUPS = [
   {region:"LA Valley",type:"Home",name:"Woodland Hills 2",leader:"Rick Pearson",day:"2nd Thursday",city:"Woodland Hills",time:"7:30am – 9:00am"},
   {region:"LA Valley",type:"Home",name:"Woodland Hills 3",leader:"David Jacobs",day:"4th Wednesday",city:"Woodland Hills",time:"7:30am – 9:00am"},
   {region:"LA Valley",type:"Home",name:"Woodland Hills 4",leader:"Jeff Kobulnick",day:"2nd Wednesday",city:"Woodland Hills",time:"7:30am – 9:00am"},
-  // LA Valley - Affinity
   {region:"LA Valley",type:"Affinity",name:"SoCal Cannabis",leader:"Greg Hill",day:"4th Tuesday",city:"Woodland Hills",time:"12:00pm – 1:30pm"},
   {region:"LA Valley",type:"Affinity",name:"Conejo Valley Real Estate",leader:"Bruce Stein",day:"4th Thursday",city:"Westlake",time:"12:00pm – 1:30pm"},
   {region:"LA Valley",type:"Affinity",name:"Valley Distributors & Manufacturers",leader:"Jim Twerdahl",day:"2nd Wednesday",city:"Encino",time:"12:00pm – 1:30pm"},
@@ -448,30 +516,30 @@ const GROUPS = [
 ];
 
 // ── Assign coordinates with jitter ──
-const cityGroupCount = {};
-const cityGroupIndex = {};
+const cityGroupCount = {}, cityGroupIndex = {};
+GROUPS.forEach(g => { cityGroupCount[g.city] = (cityGroupCount[g.city] || 0) + 1; });
 GROUPS.forEach(g => {
-  const key = g.city;
-  cityGroupCount[key] = (cityGroupCount[key] || 0) + 1;
-});
-GROUPS.forEach(g => {
-  const key = g.city;
-  cityGroupIndex[key] = (cityGroupIndex[key] || 0);
+  cityGroupIndex[g.city] = (cityGroupIndex[g.city] || 0);
   const base = CITY_COORDS[g.city] || CITY_COORDS["Los Angeles"];
-  const coords = jitter(base, cityGroupIndex[key], cityGroupCount[key]);
-  g.lat = coords[0];
-  g.lng = coords[1];
-  g.distance = null;
-  cityGroupIndex[key]++;
+  const coords = jitter(base, cityGroupIndex[g.city], cityGroupCount[g.city]);
+  g.lat = coords[0]; g.lng = coords[1]; g.distance = null;
+  cityGroupIndex[g.city]++;
 });
 
 // ── State ──
-let userLat = null, userLng = null;
-let userMarker = null;
-let markers = [];
-let currentSort = { field: 'name', asc: true };
-let filtered = [...GROUPS];
-const selectedMeetings = new Set(); // stores GROUPS indices
+let userLat = null, userLng = null, userMarker = null, markers = [], filtered = [...GROUPS];
+const selectedMeetings = new Set();
+let calYear, calMonth;
+const now = new Date(); calYear = now.getFullYear(); calMonth = now.getMonth();
+
+// ── View Switching ──
+function switchView(view) {
+  document.querySelectorAll('.view-tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
+  document.getElementById('view-map').className = 'view-pane ' + (view === 'map' ? 'visible' : 'hidden');
+  document.getElementById('view-calendar').className = 'view-pane ' + (view === 'calendar' ? 'visible' : 'hidden');
+  if (view === 'map') setTimeout(() => map.invalidateSize(), 100);
+  if (view === 'calendar') renderCalendar();
+}
 
 // ── Map Init ──
 const map = L.map('map').setView([34.05, -118.40], 10);
@@ -486,41 +554,31 @@ function createIcon(type, size = 12) {
   });
 }
 
-// ── Distance Calculation (Haversine) ──
+// ── Distance (Haversine) ──
 function haversine(lat1, lon1, lat2, lon2) {
-  const R = 3958.8; // miles
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const R = 3958.8, dLat = (lat2 - lat1) * Math.PI / 180, dLon = (lon2 - lon1) * Math.PI / 180;
   const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
+function updateDistances() { GROUPS.forEach(g => { g.distance = userLat !== null ? haversine(userLat, userLng, g.lat, g.lng) : null; }); }
 
-function updateDistances() {
-  GROUPS.forEach(g => {
-    g.distance = (userLat !== null) ? haversine(userLat, userLng, g.lat, g.lng) : null;
-  });
-}
-
-// ── Geocode user address via Nominatim ──
 async function geocodeAddress() {
   const addr = document.getElementById('user-address').value.trim();
   if (!addr) return;
   try {
     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}&limit=1`);
     const data = await res.json();
-    if (data.length === 0) { alert('Address not found. Try a more specific address.'); return; }
+    if (!data.length) { alert('Address not found.'); return; }
     setUserLocation(parseFloat(data[0].lat), parseFloat(data[0].lon), addr);
   } catch(e) { alert('Geocoding error: ' + e.message); }
 }
-
 function useMyLocation() {
   if (!navigator.geolocation) { alert('Geolocation not supported'); return; }
   navigator.geolocation.getCurrentPosition(pos => {
     setUserLocation(pos.coords.latitude, pos.coords.longitude, 'Your Location');
     document.getElementById('user-address').value = `${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
-  }, () => alert('Could not get your location. Please enter an address instead.'));
+  }, () => alert('Could not get location.'));
 }
-
 function setUserLocation(lat, lng, label) {
   userLat = lat; userLng = lng;
   if (userMarker) map.removeLayer(userMarker);
@@ -528,16 +586,44 @@ function setUserLocation(lat, lng, label) {
     .addTo(map).bindPopup(`<strong>${label}</strong><br>Your location`);
   updateDistances();
   document.getElementById('sort-by').value = 'distance';
-  applyFilters();
-  map.setView([lat, lng], 11);
+  applyFilters(); map.setView([lat, lng], 11);
 }
 
-// ── Day ordering for sort ──
-const DAY_ORDER = { 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5 };
-const WEEK_ORDER = { '1st': 1, '2nd': 2, '3rd': 3, '4th': 4 };
-function daySort(dayStr) {
+// ── Day helpers ──
+const DAY_ORDER = { 'Monday':1,'Tuesday':2,'Wednesday':3,'Thursday':4,'Friday':5 };
+const WEEK_ORDER = { '1st':1,'2nd':2,'3rd':3,'4th':4 };
+const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function daySort(dayStr) { const p = dayStr.split(' '); return (WEEK_ORDER[p[0]]||0)*10 + (DAY_ORDER[p[1]]||0); }
+
+// Get the Nth weekday of a month. Returns date or null.
+function getNthWeekday(year, month, nth, weekday) {
+  // weekday: 0=Sun..6=Sat; nth: 1-4
+  const first = new Date(year, month, 1);
+  let day = 1 + ((weekday - first.getDay() + 7) % 7);
+  day += (nth - 1) * 7;
+  if (day > new Date(year, month + 1, 0).getDate()) return null;
+  return new Date(year, month, day);
+}
+
+// Parse "2nd Tuesday" → { nth, weekdayIndex }
+function parseDayPattern(dayStr) {
   const parts = dayStr.split(' ');
-  return (WEEK_ORDER[parts[0]] || 0) * 10 + (DAY_ORDER[parts[1]] || 0);
+  const nth = WEEK_ORDER[parts[0]];
+  const wdi = DAY_ORDER[parts[1]]; // Mon=1..Fri=5
+  if (!nth || wdi === undefined) return null;
+  return { nth, weekdayIndex: wdi }; // JS weekday: Mon=1
+}
+
+// Get time slot: 'morning', 'lunch', 'evening'
+function getTimeSlot(timeStr) {
+  const h = parseInt(timeStr);
+  const isPm = timeStr.toLowerCase().includes('pm') && !timeStr.startsWith('12');
+  const hour = isPm ? h + 12 : (timeStr.startsWith('12') && timeStr.toLowerCase().includes('pm')) ? 12 : h;
+  if (hour < 11) return 'morning';
+  if (hour < 17) return 'lunch';
+  return 'evening';
 }
 
 // ── Filter & Render ──
@@ -547,7 +633,6 @@ function applyFilters() {
   const type = document.getElementById('filter-type').value;
   const day = document.getElementById('filter-day').value;
   const sortField = document.getElementById('sort-by').value;
-
   filtered = GROUPS.filter(g => {
     if (region && g.region !== region) return false;
     if (type && g.type !== type) return false;
@@ -555,10 +640,9 @@ function applyFilters() {
     if (search && !(g.name.toLowerCase().includes(search) || g.leader.toLowerCase().includes(search) || g.city.toLowerCase().includes(search) || g.region.toLowerCase().includes(search))) return false;
     return true;
   });
-
   filtered.sort((a, b) => {
     switch(sortField) {
-      case 'distance': return (a.distance ?? 9999) - (b.distance ?? 9999);
+      case 'distance': return (a.distance??9999) - (b.distance??9999);
       case 'city': return a.city.localeCompare(b.city);
       case 'day': return daySort(a.day) - daySort(b.day);
       case 'type': return a.type.localeCompare(b.type);
@@ -566,73 +650,51 @@ function applyFilters() {
       default: return a.name.localeCompare(b.name);
     }
   });
-
-  renderTable();
-  renderMarkers();
-  updateStats();
+  renderTable(); renderMarkers(); updateStats(); renderCalendar();
 }
 
-function sortBy(field) {
-  document.getElementById('sort-by').value = field;
-  applyFilters();
-}
+function sortBy(field) { document.getElementById('sort-by').value = field; applyFilters(); }
 
 function renderTable() {
   const tbody = document.getElementById('table-body');
-  tbody.innerHTML = filtered.map((g, i) => {
+  tbody.innerHTML = filtered.map(g => {
     const idx = GROUPS.indexOf(g);
     const checked = selectedMeetings.has(idx) ? 'checked' : '';
-    return `
-    <tr onclick="focusGroup(${idx})" data-idx="${idx}" class="${selectedMeetings.has(idx) ? 'selected' : ''}">
-      <td class="cb-col" onclick="event.stopPropagation()">
-        <input type="checkbox" ${checked} onchange="toggleSelection(${idx}, this.checked)" />
-      </td>
+    return `<tr onclick="focusGroup(${idx})" data-idx="${idx}" class="${selectedMeetings.has(idx)?'selected':''}">
+      <td class="cb-col" onclick="event.stopPropagation()"><input type="checkbox" ${checked} onchange="toggleSelection(${idx},this.checked)" /></td>
       <td><strong>${g.name}</strong><br><span style="color:#636e72;font-size:11px">${g.leader}</span></td>
       <td><span class="badge ${g.type.toLowerCase()}">${g.type}</span></td>
       <td>${g.city}</td>
       <td style="white-space:nowrap">${g.day}</td>
       <td style="white-space:nowrap">${g.time}</td>
-      <td class="distance-cell">${g.distance !== null ? g.distance.toFixed(1) + ' mi' : '—'}</td>
-    </tr>`;
+      <td class="distance-cell">${g.distance!==null?g.distance.toFixed(1)+' mi':'—'}</td></tr>`;
   }).join('');
   document.getElementById('table-footer').textContent = `Showing ${filtered.length} of ${GROUPS.length} groups`;
 }
 
 function renderMarkers() {
-  markers.forEach(m => map.removeLayer(m));
-  markers = [];
+  markers.forEach(m => map.removeLayer(m)); markers = [];
   filtered.forEach(g => {
     const idx = GROUPS.indexOf(g);
     const m = L.marker([g.lat, g.lng], { icon: createIcon(g.type) }).addTo(map);
     const distHtml = g.distance !== null ? `<div class="popup-distance">${g.distance.toFixed(1)} miles from you</div>` : '';
-    const isSelected = selectedMeetings.has(idx);
-    const btnLabel = isSelected ? 'In My Meetings' : 'Add to My Meetings';
-    const btnStyle = isSelected
-      ? 'background:#e8f0e8;color:#27ae60;border:1px solid #27ae60;'
-      : 'background:#153D63;color:white;border:none;';
-    m.bindPopup(`
-      <strong>${g.name}</strong><br>
-      <span style="color:#636e72">${g.type} Group &bull; ${g.region}</span><br>
-      Leader: ${g.leader}<br>
-      ${g.day} &bull; ${g.time}<br>
-      ${g.city}
-      ${distHtml}
-      <div style="margin-top:8px">
-        <button onclick="toggleSelectionFromPopup(${idx})" style="${btnStyle}padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;">${btnLabel}</button>
-      </div>
-    `);
+    const isSel = selectedMeetings.has(idx);
+    const btnStyle = isSel ? 'background:#e8f0e8;color:#27ae60;border:1px solid #27ae60;' : 'background:#153D63;color:white;border:none;';
+    m.bindPopup(`<strong>${g.name}</strong><br><span style="color:#636e72">${g.type} Group &bull; ${g.region}</span><br>
+      Leader: ${g.leader}<br>${g.day} &bull; ${g.time}<br>${g.city}${distHtml}
+      <div style="margin-top:8px"><button onclick="toggleSelectionFromPopup(${idx})" style="${btnStyle}padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;">${isSel?'In My Meetings':'Add to My Meetings'}</button></div>`);
     markers.push(m);
   });
 }
 
 function focusGroup(idx) {
-  const g = GROUPS[idx];
-  map.setView([g.lat, g.lng], 13);
+  const g = GROUPS[idx]; map.setView([g.lat, g.lng], 13);
   const mi = filtered.indexOf(g);
   if (mi >= 0 && markers[mi]) markers[mi].openPopup();
   document.querySelectorAll('.table-wrap tr.selected').forEach(r => r.classList.remove('selected'));
   const row = document.querySelector(`tr[data-idx="${idx}"]`);
   if (row) { row.classList.add('selected'); row.scrollIntoView({ block: 'nearest' }); }
+  switchView('map');
 }
 
 function updateStats() {
@@ -648,116 +710,212 @@ function updateStats() {
 
 // ── Selection / My Meetings ──
 function toggleSelection(idx, checked) {
-  if (checked) selectedMeetings.add(idx);
-  else selectedMeetings.delete(idx);
-  renderMyMeetings();
-  // Update row highlight without full re-render
+  if (checked) selectedMeetings.add(idx); else selectedMeetings.delete(idx);
+  renderMyMeetings(); saveSelections(); renderCalendar();
   const row = document.querySelector(`tr[data-idx="${idx}"]`);
   if (row) row.classList.toggle('selected', checked);
-  saveSelections();
 }
-
 function removeSelection(idx) {
-  selectedMeetings.delete(idx);
-  renderMyMeetings();
-  // Uncheck the checkbox if visible
+  selectedMeetings.delete(idx); renderMyMeetings(); saveSelections(); renderCalendar();
   const row = document.querySelector(`tr[data-idx="${idx}"]`);
-  if (row) {
-    row.classList.remove('selected');
-    const cb = row.querySelector('input[type="checkbox"]');
-    if (cb) cb.checked = false;
-  }
-  saveSelections();
+  if (row) { row.classList.remove('selected'); const cb = row.querySelector('input[type="checkbox"]'); if (cb) cb.checked = false; }
 }
-
 function toggleSelectionFromPopup(idx) {
-  const nowSelected = !selectedMeetings.has(idx);
-  if (nowSelected) selectedMeetings.add(idx);
-  else selectedMeetings.delete(idx);
-  renderMyMeetings();
-  updateStats();
-  saveSelections();
-  // Re-render table checkboxes
+  const sel = !selectedMeetings.has(idx);
+  if (sel) selectedMeetings.add(idx); else selectedMeetings.delete(idx);
+  renderMyMeetings(); updateStats(); saveSelections(); renderCalendar();
   const row = document.querySelector(`tr[data-idx="${idx}"]`);
-  if (row) {
-    row.classList.toggle('selected', nowSelected);
-    const cb = row.querySelector('input[type="checkbox"]');
-    if (cb) cb.checked = nowSelected;
-  }
-  // Re-render markers to update popup button state
+  if (row) { row.classList.toggle('selected', sel); const cb = row.querySelector('input[type="checkbox"]'); if (cb) cb.checked = sel; }
   renderMarkers();
 }
-
 function clearAllSelections() {
-  selectedMeetings.clear();
-  renderMyMeetings();
+  selectedMeetings.clear(); renderMyMeetings(); saveSelections(); renderCalendar();
   document.querySelectorAll('.table-wrap input[type="checkbox"]').forEach(cb => cb.checked = false);
   document.querySelectorAll('.table-wrap tr.selected').forEach(r => r.classList.remove('selected'));
-  saveSelections();
 }
-
 function renderMyMeetings() {
   const body = document.getElementById('my-meetings-body');
   const count = document.getElementById('my-meetings-count');
   const panel = document.getElementById('my-meetings-panel');
   count.textContent = selectedMeetings.size;
   document.getElementById('stat-selected').textContent = selectedMeetings.size;
-
-  if (selectedMeetings.size === 0) {
-    body.innerHTML = '<div class="my-meetings-empty">Check meetings above to add them to your list</div>';
-    return;
-  }
-
-  // Auto-expand when first item added
-  if (selectedMeetings.size === 1 && panel.classList.contains('collapsed')) {
-    panel.classList.remove('collapsed');
-    panel.classList.add('expanded');
-  }
-
-  // Sort selected by day for a nice schedule view
+  if (selectedMeetings.size === 0) { body.innerHTML = '<div class="my-meetings-empty">Check meetings above to add them to your list</div>'; return; }
+  if (selectedMeetings.size === 1 && panel.classList.contains('collapsed')) { panel.classList.remove('collapsed'); panel.classList.add('expanded'); }
   const sorted = [...selectedMeetings].sort((a, b) => daySort(GROUPS[a].day) - daySort(GROUPS[b].day));
   body.innerHTML = sorted.map(idx => {
-    const g = GROUPS[idx];
-    const dist = g.distance !== null ? ` &bull; ${g.distance.toFixed(1)} mi` : '';
-    return `
-      <div class="my-meeting-item">
-        <div class="my-meeting-info">
-          <strong>${g.name}</strong>
-          <div class="meta">${g.day} &bull; ${g.time} &bull; ${g.city}${dist}</div>
-        </div>
-        <button class="my-meeting-remove" onclick="removeSelection(${idx})" title="Remove">&times;</button>
-      </div>`;
+    const g = GROUPS[idx]; const dist = g.distance !== null ? ` &bull; ${g.distance.toFixed(1)} mi` : '';
+    return `<div class="my-meeting-item"><div class="my-meeting-info"><strong>${g.name}</strong>
+      <div class="meta">${g.day} &bull; ${g.time} &bull; ${g.city}${dist}</div></div>
+      <button class="my-meeting-remove" onclick="removeSelection(${idx})" title="Remove">&times;</button></div>`;
   }).join('');
 }
-
 function toggleMyMeetings() {
-  const panel = document.getElementById('my-meetings-panel');
-  panel.classList.toggle('collapsed');
-  panel.classList.toggle('expanded');
+  const p = document.getElementById('my-meetings-panel'); p.classList.toggle('collapsed'); p.classList.toggle('expanded');
 }
-
-function openHub() {
-  window.open('https://hub.provisors.com/personalsnapshot', '_blank');
-}
-
-// Persist selections in localStorage
-function saveSelections() {
-  localStorage.setItem('provisors-selected', JSON.stringify([...selectedMeetings]));
-}
+function openHub() { window.open('https://hub.provisors.com/personalsnapshot', '_blank'); }
+function saveSelections() { localStorage.setItem('provisors-selected', JSON.stringify([...selectedMeetings])); }
 function loadSelections() {
-  try {
-    const saved = JSON.parse(localStorage.getItem('provisors-selected') || '[]');
-    saved.forEach(idx => { if (idx >= 0 && idx < GROUPS.length) selectedMeetings.add(idx); });
+  try { const s = JSON.parse(localStorage.getItem('provisors-selected') || '[]');
+    s.forEach(idx => { if (idx >= 0 && idx < GROUPS.length) selectedMeetings.add(idx); });
     renderMyMeetings();
   } catch(e) {}
 }
 
-// Allow Enter key on address input
-document.getElementById('user-address').addEventListener('keydown', e => {
-  if (e.key === 'Enter') geocodeAddress();
-});
+// ── Calendar Logic ──
+function calNav(delta) { calMonth += delta; if (calMonth > 11) { calMonth = 0; calYear++; } if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar(); }
+function calToday() { const n = new Date(); calYear = n.getFullYear(); calMonth = n.getMonth(); renderCalendar(); }
 
-// ── Initial render ──
+function renderCalendar() {
+  const grid = document.getElementById('cal-grid');
+  if (!grid) return;
+  document.getElementById('cal-month-title').textContent = `${MONTH_NAMES[calMonth]} ${calYear}`;
+
+  const firstDay = new Date(calYear, calMonth, 1);
+  const lastDay = new Date(calYear, calMonth + 1, 0);
+  const startPad = firstDay.getDay(); // 0=Sun
+  const daysInMonth = lastDay.getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // Build meeting data for this month: map dateStr → { booked: [...], available: [...] }
+  const meetingsByDate = {};
+  GROUPS.forEach((g, idx) => {
+    const parsed = parseDayPattern(g.day);
+    if (!parsed) return;
+    const date = getNthWeekday(calYear, calMonth, parsed.nth, parsed.weekdayIndex);
+    if (!date) return;
+    const key = date.toDateString();
+    if (!meetingsByDate[key]) meetingsByDate[key] = { booked: [], available: [] };
+    const slot = getTimeSlot(g.time);
+    if (selectedMeetings.has(idx)) {
+      meetingsByDate[key].booked.push({ idx, slot, group: g });
+    } else {
+      meetingsByDate[key].available.push({ idx, slot, group: g });
+    }
+  });
+
+  let html = '';
+  // Previous month padding
+  const prevMonthDays = new Date(calYear, calMonth, 0).getDate();
+  for (let i = startPad - 1; i >= 0; i--) {
+    html += `<div class="cal-day outside"><div class="cal-day-num">${prevMonthDays - i}</div></div>`;
+  }
+
+  // Days of the month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(calYear, calMonth, d);
+    const isToday = date.getTime() === today.getTime();
+    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+    const key = date.toDateString();
+    const meetings = meetingsByDate[key];
+    let classes = 'cal-day';
+    if (isToday) classes += ' today';
+    if (isWeekend) classes += ' weekend';
+
+    html += `<div class="${classes}"><div class="cal-day-num">${d}</div><div class="cal-slots">`;
+
+    if (isWeekend) {
+      html += '</div></div>';
+      continue;
+    }
+
+    // Three slots: morning, lunch, evening
+    ['morning', 'lunch', 'evening'].forEach(slot => {
+      const slotLabel = slot === 'morning' ? 'AM' : slot === 'lunch' ? 'PM' : 'EVE';
+      const booked = meetings ? meetings.booked.filter(m => m.slot === slot) : [];
+      const avail = meetings ? meetings.available.filter(m => m.slot === slot) : [];
+
+      if (booked.length > 0) {
+        // Show booked meetings
+        booked.forEach(m => {
+          const cls = m.group.type === 'Affinity' ? 'booked-affinity' : 'booked';
+          html += `<div class="cal-slot ${cls}" onmouseenter="showTooltip(event,${m.idx},true)" onmouseleave="hideTooltip()">
+            <span class="slot-label">${slotLabel}</span><span class="slot-name">${m.group.name}</span></div>`;
+        });
+        // If also available in same slot
+        if (avail.length > 0) {
+          html += `<div class="cal-slot available" onclick="filterForSlot('${date.toISOString()}','${slot}')"
+            onmouseenter="showSlotTooltip(event,'${key}','${slot}',false)" onmouseleave="hideTooltip()">
+            <span class="slot-label">+</span><span class="slot-name">${avail.length} more</span>
+            <span class="slot-count">${avail.length}</span></div>`;
+        }
+      } else if (avail.length > 0) {
+        // Open slot with available meetings
+        html += `<div class="cal-slot available" onclick="filterForSlot('${date.toISOString()}','${slot}')"
+          onmouseenter="showSlotTooltip(event,'${key}','${slot}',false)" onmouseleave="hideTooltip()">
+          <span class="slot-label">${slotLabel}</span><span class="slot-name">${avail.length} available</span>
+          <span class="slot-count">${avail.length}</span></div>`;
+      } else {
+        // Empty open slot
+        html += `<div class="cal-slot open"><span class="slot-label">${slotLabel}</span><span class="slot-name">open</span></div>`;
+      }
+    });
+    html += '</div></div>';
+  }
+
+  // Next month padding
+  const totalCells = startPad + daysInMonth;
+  const remaining = (7 - (totalCells % 7)) % 7;
+  for (let i = 1; i <= remaining; i++) {
+    html += `<div class="cal-day outside"><div class="cal-day-num">${i}</div></div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+// ── Tooltip ──
+const tooltip = document.getElementById('slot-tooltip');
+function showTooltip(e, idx, isBooked) {
+  const g = GROUPS[idx];
+  const dist = g.distance !== null ? `<br>${g.distance.toFixed(1)} mi away` : '';
+  tooltip.innerHTML = `<h4>${g.name}</h4>${g.type} Group &bull; ${g.region}<br>
+    Leader: ${g.leader}<br>${g.day} &bull; ${g.time}<br>${g.city}${dist}`;
+  positionTooltip(e);
+  tooltip.classList.add('show');
+}
+function showSlotTooltip(e, dateKey, slot, isBooked) {
+  const meetings = {};
+  GROUPS.forEach((g, idx) => {
+    const parsed = parseDayPattern(g.day);
+    if (!parsed) return;
+    const date = getNthWeekday(calYear, calMonth, parsed.nth, parsed.weekdayIndex);
+    if (!date || date.toDateString() !== dateKey) return;
+    if (getTimeSlot(g.time) !== slot) return;
+    if (selectedMeetings.has(idx)) return;
+    if (!meetings[idx]) meetings[idx] = g;
+  });
+  const groups = Object.values(meetings);
+  if (!groups.length) return;
+  const slotName = slot === 'morning' ? 'Morning (7-9 AM)' : slot === 'lunch' ? 'Lunch (11 AM-2 PM)' : 'Evening (6-9 PM)';
+  tooltip.innerHTML = `<h4>${slotName}</h4><div class="tt-groups">${groups.map(g =>
+    `<div class="tt-group"><span>${g.name}</span><span class="tt-city">${g.city}</span></div>`
+  ).join('')}</div><div style="margin-top:6px;font-size:11px;color:#C5A355;font-weight:600;">Click to filter in table</div>`;
+  positionTooltip(e);
+  tooltip.classList.add('show');
+}
+function positionTooltip(e) {
+  let x = e.clientX + 12, y = e.clientY + 12;
+  if (x + 280 > window.innerWidth) x = e.clientX - 290;
+  if (y + 200 > window.innerHeight) y = e.clientY - 200;
+  tooltip.style.left = x + 'px'; tooltip.style.top = y + 'px';
+}
+function hideTooltip() { tooltip.classList.remove('show'); }
+
+// Click an available calendar slot → filter sidebar to that day + time slot
+function filterForSlot(isoDate, slot) {
+  const date = new Date(isoDate);
+  const dayName = DAY_NAMES[date.getDay()];
+  document.getElementById('filter-day').value = dayName;
+  document.getElementById('search').value = '';
+  document.getElementById('filter-region').value = '';
+  document.getElementById('filter-type').value = '';
+  applyFilters();
+  switchView('map');
+}
+
+// Enter key on address
+document.getElementById('user-address').addEventListener('keydown', e => { if (e.key === 'Enter') geocodeAddress(); });
+
+// ── Init ──
 loadSelections();
 applyFilters();
 </script>
