@@ -77,10 +77,64 @@
 
     .distance-cell { font-weight: 600; color: #153D63; white-space: nowrap; }
 
+    /* Checkbox column */
+    .table-wrap th.cb-col, .table-wrap td.cb-col { width: 32px; text-align: center; padding: 7px 4px; }
+    .table-wrap td.cb-col { cursor: default; }
+    .cb-col input[type="checkbox"] {
+      width: 15px; height: 15px; cursor: pointer; accent-color: #C5A355;
+    }
+
     .table-footer {
       padding: 8px 16px; background: #fafafa; border-top: 1px solid #eee;
       font-size: 12px; color: #636e72;
     }
+
+    /* My Meetings Panel */
+    .my-meetings {
+      border-top: 2px solid #C5A355; background: #fdfaf3; overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .my-meetings.collapsed { max-height: 42px; }
+    .my-meetings.expanded { max-height: 50vh; }
+    .my-meetings-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; cursor: pointer; user-select: none;
+    }
+    .my-meetings-header h3 {
+      font-size: 13px; font-weight: 700; color: #153D63; display: flex; align-items: center; gap: 8px;
+    }
+    .my-meetings-header .count-badge {
+      background: #C5A355; color: white; font-size: 11px; font-weight: 700;
+      padding: 1px 7px; border-radius: 10px; min-width: 20px; text-align: center;
+    }
+    .my-meetings-header .toggle-arrow { font-size: 12px; color: #636e72; transition: transform 0.3s; }
+    .my-meetings.expanded .toggle-arrow { transform: rotate(180deg); }
+    .my-meetings-actions {
+      display: flex; gap: 6px; align-items: center;
+    }
+    .my-meetings-actions button {
+      padding: 4px 10px; font-size: 11px; border-radius: 4px; cursor: pointer;
+      font-weight: 600; border: none; transition: background 0.2s;
+    }
+    .btn-hub { background: #153D63; color: white; }
+    .btn-hub:hover { background: #1a5276; }
+    .btn-clear { background: #e0e0e0; color: #333; }
+    .btn-clear:hover { background: #ccc; }
+    .my-meetings-body { padding: 0 16px 10px; overflow-y: auto; max-height: calc(50vh - 42px); }
+    .my-meeting-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 0; border-bottom: 1px solid #f0e8d0; font-size: 12px;
+    }
+    .my-meeting-item:last-child { border-bottom: none; }
+    .my-meeting-info { flex: 1; }
+    .my-meeting-info strong { color: #153D63; }
+    .my-meeting-info .meta { color: #636e72; font-size: 11px; }
+    .my-meeting-remove {
+      background: none; border: none; color: #c0392b; cursor: pointer;
+      font-size: 16px; padding: 2px 6px; border-radius: 4px; line-height: 1;
+    }
+    .my-meeting-remove:hover { background: #fde8e8; }
+    .my-meetings-empty { color: #999; font-size: 12px; padding: 4px 0; font-style: italic; }
 
     /* Map */
     #map { width: 100%; height: 100%; }
@@ -121,6 +175,7 @@
     <div class="stat"><div class="num" id="stat-home">99</div><div class="label">Home</div></div>
     <div class="stat"><div class="num" id="stat-affinity">36</div><div class="label">Affinity</div></div>
     <div class="stat"><div class="num" id="stat-cities">28</div><div class="label">Cities</div></div>
+    <div class="stat"><div class="num" id="stat-selected" style="color:#e74c3c">0</div><div class="label">Selected</div></div>
   </div>
 </div>
 
@@ -165,6 +220,7 @@
       <table>
         <thead>
           <tr>
+            <th class="cb-col" onclick="event.stopPropagation()"></th>
             <th onclick="sortBy('name')">Group <span class="sort-arrow"></span></th>
             <th onclick="sortBy('type')">Type</th>
             <th onclick="sortBy('city')">City</th>
@@ -177,6 +233,19 @@
       </table>
     </div>
     <div class="table-footer" id="table-footer">Showing 136 groups</div>
+    <div class="my-meetings collapsed" id="my-meetings-panel">
+      <div class="my-meetings-header" onclick="toggleMyMeetings()">
+        <h3>My Meetings <span class="count-badge" id="my-meetings-count">0</span></h3>
+        <div class="my-meetings-actions">
+          <button class="btn-hub" onclick="event.stopPropagation(); openHub()">Open Hub</button>
+          <button class="btn-clear" onclick="event.stopPropagation(); clearAllSelections()">Clear</button>
+          <span class="toggle-arrow">&#9660;</span>
+        </div>
+      </div>
+      <div class="my-meetings-body" id="my-meetings-body">
+        <div class="my-meetings-empty">Check meetings above to add them to your list</div>
+      </div>
+    </div>
   </div>
   <div class="map-area">
     <div id="map"></div>
@@ -402,6 +471,7 @@ let userMarker = null;
 let markers = [];
 let currentSort = { field: 'name', asc: true };
 let filtered = [...GROUPS];
+const selectedMeetings = new Set(); // stores GROUPS indices
 
 // ── Map Init ──
 const map = L.map('map').setView([34.05, -118.40], 10);
@@ -509,16 +579,22 @@ function sortBy(field) {
 
 function renderTable() {
   const tbody = document.getElementById('table-body');
-  tbody.innerHTML = filtered.map((g, i) => `
-    <tr onclick="focusGroup(${GROUPS.indexOf(g)})" data-idx="${GROUPS.indexOf(g)}">
+  tbody.innerHTML = filtered.map((g, i) => {
+    const idx = GROUPS.indexOf(g);
+    const checked = selectedMeetings.has(idx) ? 'checked' : '';
+    return `
+    <tr onclick="focusGroup(${idx})" data-idx="${idx}" class="${selectedMeetings.has(idx) ? 'selected' : ''}">
+      <td class="cb-col" onclick="event.stopPropagation()">
+        <input type="checkbox" ${checked} onchange="toggleSelection(${idx}, this.checked)" />
+      </td>
       <td><strong>${g.name}</strong><br><span style="color:#636e72;font-size:11px">${g.leader}</span></td>
       <td><span class="badge ${g.type.toLowerCase()}">${g.type}</span></td>
       <td>${g.city}</td>
       <td style="white-space:nowrap">${g.day}</td>
       <td style="white-space:nowrap">${g.time}</td>
       <td class="distance-cell">${g.distance !== null ? g.distance.toFixed(1) + ' mi' : '—'}</td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
   document.getElementById('table-footer').textContent = `Showing ${filtered.length} of ${GROUPS.length} groups`;
 }
 
@@ -526,8 +602,14 @@ function renderMarkers() {
   markers.forEach(m => map.removeLayer(m));
   markers = [];
   filtered.forEach(g => {
+    const idx = GROUPS.indexOf(g);
     const m = L.marker([g.lat, g.lng], { icon: createIcon(g.type) }).addTo(map);
     const distHtml = g.distance !== null ? `<div class="popup-distance">${g.distance.toFixed(1)} miles from you</div>` : '';
+    const isSelected = selectedMeetings.has(idx);
+    const btnLabel = isSelected ? 'In My Meetings' : 'Add to My Meetings';
+    const btnStyle = isSelected
+      ? 'background:#e8f0e8;color:#27ae60;border:1px solid #27ae60;'
+      : 'background:#153D63;color:white;border:none;';
     m.bindPopup(`
       <strong>${g.name}</strong><br>
       <span style="color:#636e72">${g.type} Group &bull; ${g.region}</span><br>
@@ -535,6 +617,9 @@ function renderMarkers() {
       ${g.day} &bull; ${g.time}<br>
       ${g.city}
       ${distHtml}
+      <div style="margin-top:8px">
+        <button onclick="toggleSelectionFromPopup(${idx})" style="${btnStyle}padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;">${btnLabel}</button>
+      </div>
     `);
     markers.push(m);
   });
@@ -558,6 +643,113 @@ function updateStats() {
   document.getElementById('stat-home').textContent = home;
   document.getElementById('stat-affinity').textContent = affinity;
   document.getElementById('stat-cities').textContent = cities;
+  document.getElementById('stat-selected').textContent = selectedMeetings.size;
+}
+
+// ── Selection / My Meetings ──
+function toggleSelection(idx, checked) {
+  if (checked) selectedMeetings.add(idx);
+  else selectedMeetings.delete(idx);
+  renderMyMeetings();
+  // Update row highlight without full re-render
+  const row = document.querySelector(`tr[data-idx="${idx}"]`);
+  if (row) row.classList.toggle('selected', checked);
+  saveSelections();
+}
+
+function removeSelection(idx) {
+  selectedMeetings.delete(idx);
+  renderMyMeetings();
+  // Uncheck the checkbox if visible
+  const row = document.querySelector(`tr[data-idx="${idx}"]`);
+  if (row) {
+    row.classList.remove('selected');
+    const cb = row.querySelector('input[type="checkbox"]');
+    if (cb) cb.checked = false;
+  }
+  saveSelections();
+}
+
+function toggleSelectionFromPopup(idx) {
+  const nowSelected = !selectedMeetings.has(idx);
+  if (nowSelected) selectedMeetings.add(idx);
+  else selectedMeetings.delete(idx);
+  renderMyMeetings();
+  updateStats();
+  saveSelections();
+  // Re-render table checkboxes
+  const row = document.querySelector(`tr[data-idx="${idx}"]`);
+  if (row) {
+    row.classList.toggle('selected', nowSelected);
+    const cb = row.querySelector('input[type="checkbox"]');
+    if (cb) cb.checked = nowSelected;
+  }
+  // Re-render markers to update popup button state
+  renderMarkers();
+}
+
+function clearAllSelections() {
+  selectedMeetings.clear();
+  renderMyMeetings();
+  document.querySelectorAll('.table-wrap input[type="checkbox"]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('.table-wrap tr.selected').forEach(r => r.classList.remove('selected'));
+  saveSelections();
+}
+
+function renderMyMeetings() {
+  const body = document.getElementById('my-meetings-body');
+  const count = document.getElementById('my-meetings-count');
+  const panel = document.getElementById('my-meetings-panel');
+  count.textContent = selectedMeetings.size;
+  document.getElementById('stat-selected').textContent = selectedMeetings.size;
+
+  if (selectedMeetings.size === 0) {
+    body.innerHTML = '<div class="my-meetings-empty">Check meetings above to add them to your list</div>';
+    return;
+  }
+
+  // Auto-expand when first item added
+  if (selectedMeetings.size === 1 && panel.classList.contains('collapsed')) {
+    panel.classList.remove('collapsed');
+    panel.classList.add('expanded');
+  }
+
+  // Sort selected by day for a nice schedule view
+  const sorted = [...selectedMeetings].sort((a, b) => daySort(GROUPS[a].day) - daySort(GROUPS[b].day));
+  body.innerHTML = sorted.map(idx => {
+    const g = GROUPS[idx];
+    const dist = g.distance !== null ? ` &bull; ${g.distance.toFixed(1)} mi` : '';
+    return `
+      <div class="my-meeting-item">
+        <div class="my-meeting-info">
+          <strong>${g.name}</strong>
+          <div class="meta">${g.day} &bull; ${g.time} &bull; ${g.city}${dist}</div>
+        </div>
+        <button class="my-meeting-remove" onclick="removeSelection(${idx})" title="Remove">&times;</button>
+      </div>`;
+  }).join('');
+}
+
+function toggleMyMeetings() {
+  const panel = document.getElementById('my-meetings-panel');
+  panel.classList.toggle('collapsed');
+  panel.classList.toggle('expanded');
+}
+
+function openHub() {
+  window.open('https://hub.provisors.com/personalsnapshot', '_blank');
+}
+
+// Persist selections in localStorage
+function saveSelections() {
+  localStorage.setItem('provisors-selected', JSON.stringify([...selectedMeetings]));
+}
+function loadSelections() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('provisors-selected') || '[]');
+    saved.forEach(idx => { if (idx >= 0 && idx < GROUPS.length) selectedMeetings.add(idx); });
+    renderMyMeetings();
+  } catch(e) {}
 }
 
 // Allow Enter key on address input
@@ -566,6 +758,7 @@ document.getElementById('user-address').addEventListener('keydown', e => {
 });
 
 // ── Initial render ──
+loadSelections();
 applyFilters();
 </script>
 </body>
