@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProVisors LA Meeting Groups</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #f5f6fa; color: #2d3436; }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #153D63 0%, #1a5276 100%);
+      color: white; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .header h1 { font-size: 24px; font-weight: 700; }
+    .header h1 span { color: #C5A355; }
+    .header .subtitle { font-size: 13px; opacity: 0.8; margin-top: 2px; }
+    .stats-bar { display: flex; gap: 24px; }
+    .stat { text-align: center; }
+    .stat .num { font-size: 22px; font-weight: 700; color: #C5A355; }
+    .stat .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; }
+
+    /* Layout */
+    .container { display: flex; height: calc(100vh - 72px); }
+    .sidebar { width: 520px; min-width: 520px; display: flex; flex-direction: column; background: white; border-right: 1px solid #dfe6e9; }
+    .map-area { flex: 1; position: relative; }
+
+    /* Controls */
+    .controls { padding: 14px 16px; border-bottom: 1px solid #eee; background: #fafafa; }
+    .address-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .address-row input {
+      flex: 1; padding: 9px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;
+      outline: none; transition: border-color 0.2s;
+    }
+    .address-row input:focus { border-color: #153D63; }
+    .address-row button {
+      padding: 9px 16px; background: #153D63; color: white; border: none; border-radius: 6px;
+      font-size: 13px; cursor: pointer; white-space: nowrap; font-weight: 600;
+      transition: background 0.2s;
+    }
+    .address-row button:hover { background: #1a5276; }
+    .address-row button.secondary { background: #C5A355; }
+    .address-row button.secondary:hover { background: #b8963e; }
+
+    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-row select, .filter-row input {
+      padding: 7px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px;
+      background: white; outline: none;
+    }
+    .filter-row input { flex: 1; min-width: 120px; }
+    .filter-row select { min-width: 100px; }
+
+    /* Table */
+    .table-wrap { flex: 1; overflow-y: auto; }
+    .table-wrap table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .table-wrap thead { position: sticky; top: 0; z-index: 2; }
+    .table-wrap th {
+      background: #153D63; color: white; padding: 8px 10px; text-align: left;
+      font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;
+      cursor: pointer; user-select: none; white-space: nowrap;
+    }
+    .table-wrap th:hover { background: #1a5276; }
+    .table-wrap th .sort-arrow { margin-left: 4px; font-size: 10px; }
+    .table-wrap td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; }
+    .table-wrap tr:hover { background: #f8f9ff; cursor: pointer; }
+    .table-wrap tr.selected { background: #e8f0fe; }
+
+    .badge {
+      display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px;
+      font-weight: 600; text-transform: uppercase;
+    }
+    .badge.home { background: #dfe6fd; color: #2952cc; }
+    .badge.affinity { background: #fde8d0; color: #b35c00; }
+
+    .distance-cell { font-weight: 600; color: #153D63; white-space: nowrap; }
+
+    .table-footer {
+      padding: 8px 16px; background: #fafafa; border-top: 1px solid #eee;
+      font-size: 12px; color: #636e72;
+    }
+
+    /* Map */
+    #map { width: 100%; height: 100%; }
+    .home-marker { background: #153D63; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+    .affinity-marker { background: #C5A355; border: 2px solid white; border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+    .user-marker { background: #e74c3c; border: 2px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
+
+    .leaflet-popup-content { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13px; line-height: 1.5; }
+    .leaflet-popup-content strong { color: #153D63; }
+    .popup-distance { margin-top: 6px; padding-top: 6px; border-top: 1px solid #eee; color: #C5A355; font-weight: 600; }
+
+    /* Legend */
+    .map-legend {
+      position: absolute; bottom: 20px; right: 20px; z-index: 1000;
+      background: white; padding: 12px 16px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      font-size: 12px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .legend-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .container { flex-direction: column; height: auto; }
+      .sidebar { width: 100%; min-width: auto; max-height: 50vh; }
+      .map-area { height: 50vh; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Pro<span>Visors</span> LA Meeting Groups</h1>
+    <div class="subtitle">Greater Los Angeles Area &bull; Home &amp; Affinity Groups</div>
+  </div>
+  <div class="stats-bar">
+    <div class="stat"><div class="num" id="stat-total">136</div><div class="label">Total Groups</div></div>
+    <div class="stat"><div class="num" id="stat-home">99</div><div class="label">Home</div></div>
+    <div class="stat"><div class="num" id="stat-affinity">36</div><div class="label">Affinity</div></div>
+    <div class="stat"><div class="num" id="stat-cities">28</div><div class="label">Cities</div></div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="sidebar">
+    <div class="controls">
+      <div class="address-row">
+        <input type="text" id="user-address" placeholder="Enter your address to see distances..." />
+        <button onclick="geocodeAddress()">Calculate</button>
+        <button class="secondary" onclick="useMyLocation()">GPS</button>
+      </div>
+      <div class="filter-row">
+        <input type="text" id="search" placeholder="Search groups..." oninput="applyFilters()" />
+        <select id="filter-region" onchange="applyFilters()">
+          <option value="">All Regions</option>
+          <option value="LA Core">LA Core</option>
+          <option value="LA Westside">LA Westside</option>
+          <option value="LA Valley">LA Valley</option>
+        </select>
+        <select id="filter-type" onchange="applyFilters()">
+          <option value="">All Types</option>
+          <option value="Home">Home</option>
+          <option value="Affinity">Affinity</option>
+        </select>
+        <select id="filter-day" onchange="applyFilters()">
+          <option value="">All Days</option>
+          <option value="Monday">Monday</option>
+          <option value="Tuesday">Tuesday</option>
+          <option value="Wednesday">Wednesday</option>
+          <option value="Thursday">Thursday</option>
+          <option value="Friday">Friday</option>
+        </select>
+        <select id="sort-by" onchange="applyFilters()">
+          <option value="name">Sort: Name</option>
+          <option value="distance">Sort: Distance</option>
+          <option value="city">Sort: City</option>
+          <option value="day">Sort: Day</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortBy('name')">Group <span class="sort-arrow"></span></th>
+            <th onclick="sortBy('type')">Type</th>
+            <th onclick="sortBy('city')">City</th>
+            <th onclick="sortBy('day')">Day</th>
+            <th onclick="sortBy('time')">Time</th>
+            <th onclick="sortBy('distance')" id="dist-header">Dist.</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+    <div class="table-footer" id="table-footer">Showing 136 groups</div>
+  </div>
+  <div class="map-area">
+    <div id="map"></div>
+    <div class="map-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#153D63"></div> Home Group</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#C5A355"></div> Affinity Group</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div> Your Location</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ── City Coordinates (approximate centers for LA-area cities) ──
+const CITY_COORDS = {
+  "Los Angeles": [34.0522, -118.2437],
+  "Beverly Hills": [34.0736, -118.4004],
+  "Burbank": [34.1808, -118.3090],
+  "Claremont": [34.0967, -117.7198],
+  "Glendale": [34.1425, -118.2551],
+  "Hollywood": [34.0928, -118.3287],
+  "Pasadena": [34.1478, -118.1445],
+  "San Gabriel": [34.0961, -118.1058],
+  "Studio City": [34.1486, -118.3968],
+  "North Hollywood": [34.1870, -118.3813],
+  "Santa Monica": [34.0195, -118.4912],
+  "El Segundo": [33.9192, -118.4165],
+  "Manhattan Beach": [33.8847, -118.4109],
+  "Playa Vista": [33.9742, -118.4176],
+  "Torrance": [33.8358, -118.3406],
+  "Venice": [33.9850, -118.4695],
+  "Encino": [34.1592, -118.5014],
+  "Sherman Oaks": [34.1508, -118.4490],
+  "Calabasas": [34.1367, -118.6387],
+  "Woodland Hills": [34.1681, -118.6059],
+  "Westlake Village": [34.1417, -118.8053],
+  "Westlake": [34.1417, -118.8053],
+  "Oxnard": [34.1975, -119.1771],
+  "Camarillo": [34.2164, -119.0376],
+  "Simi Valley": [34.2694, -118.7815],
+  "Moorpark": [34.2856, -118.8820],
+  "Valencia": [34.4436, -118.6115],
+  "Santa Barbara": [34.4208, -119.6982],
+  "LAV/Zoom": [34.1700, -118.4400],
+  "LAV": [34.1700, -118.4400],
+  "Century City": [34.0565, -118.4173]
+};
+
+// Add slight offsets for groups in the same city so markers don't stack
+function jitter(coords, index, total) {
+  const spread = 0.006;
+  const angle = (index / total) * 2 * Math.PI;
+  const r = spread * Math.sqrt(index / total);
+  return [coords[0] + r * Math.cos(angle), coords[1] + r * Math.sin(angle)];
+}
+
+// ── Groups Data ──
+const GROUPS = [
+  // LA Core - Home
+  {region:"LA Core",type:"Home",name:"Beverly Hills 1",leader:"Rob Strauss",day:"2nd Tuesday",city:"Los Angeles",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Beverly Hills 2",leader:"Kevin Farrell",day:"3rd Wednesday",city:"Beverly Hills",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Beverly Hills 3",leader:"Maureen Bernstein",day:"2nd Thursday",city:"Beverly Hills",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Beverly Hills 4",leader:"Ivy Rappaport",day:"2nd Wednesday",city:"Beverly Hills",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Beverly Hills 5",leader:"Dmitry Gorin",day:"1st Friday",city:"Los Angeles",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Burbank 1",leader:"Griffin Lee",day:"1st Wednesday",city:"Burbank",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Burbank 2",leader:"Andre Sarkissian",day:"4th Tuesday",city:"Burbank",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Claremont",leader:"Alex Polamero",day:"2nd Thursday",city:"Claremont",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Downtown LA-1",leader:"Sasha Elkins",day:"4th Tuesday",city:"Los Angeles",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Downtown LA-2",leader:"Jeffrey Bollinger",day:"1st Thursday",city:"Los Angeles",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Downtown LA-3",leader:"Bill Saleebey",day:"4th Wednesday",city:"Los Angeles",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Downtown LA-4",leader:"Gideon Grunfeld",day:"1st Tuesday",city:"Los Angeles",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Downtown LA-5",leader:"Patricia Kotze-Ramos",day:"2nd Tuesday",city:"Los Angeles",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Glendale 1",leader:"Adam Walker",day:"2nd Thursday",city:"Glendale",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Glendale 2",leader:"Robert Sniderman",day:"4th Wednesday",city:"Glendale",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Hollywood",leader:"Will Tiao",day:"3rd Tuesday",city:"Hollywood",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Mid City",leader:"Jay Goldberg",day:"2nd Friday",city:"Los Angeles",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Pasadena 1",leader:"Scott Clauson",day:"2nd Friday",city:"Pasadena",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Pasadena 2",leader:"David Painter",day:"3rd Tuesday",city:"Pasadena",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Pasadena 3",leader:"John Celic",day:"3rd Friday",city:"Pasadena",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Pasadena 4",leader:"Valerie Costanza",day:"2nd Tuesday",city:"Pasadena",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Pasadena 5",leader:"Preston Howard",day:"1st Tuesday",city:"Pasadena",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Pasadena 6",leader:"Ashley Andrews",day:"3rd Thursday",city:"Pasadena",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Pasadena 7",leader:"Emily Vincent",day:"3rd Wednesday",city:"San Gabriel",time:"7:00am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Pasadena 8",leader:"Griselda Cervantes",day:"1st Thursday",city:"Pasadena",time:"11:30am – 1:00pm"},
+  {region:"LA Core",type:"Home",name:"Rancho Park",leader:"Francis Ryu",day:"3rd Thursday",city:"Los Angeles",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Studio City",leader:"Anthony Behar",day:"2nd Wednesday",city:"Studio City",time:"7:00am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"Universal City",leader:"Scott Nell",day:"3rd Wednesday",city:"North Hollywood",time:"7:30am – 9:00am"},
+  {region:"LA Core",type:"Home",name:"West Hollywood",leader:"Garry Gekht",day:"2nd Thursday",city:"Beverly Hills",time:"7:30am – 9:00am"},
+  // LA Core - Affinity
+  {region:"LA Core",type:"Affinity",name:"Distributors & Manufacturers",leader:"Keith Gregory",day:"3rd Wednesday",city:"Los Angeles",time:"1:45pm – 3:30pm"},
+  {region:"LA Core",type:"Affinity",name:"East Valley Lawyer's",leader:"Cynthia Flynn",day:"4th Wednesday",city:"Glendale",time:"12:00pm – 1:30pm"},
+  {region:"LA Core",type:"Affinity",name:"East Valley Women's",leader:"Janice Cohen",day:"4th Friday",city:"Pasadena",time:"11:30am – 1:30pm"},
+  {region:"LA Core",type:"Affinity",name:"LA Estate and Succession Planning",leader:"Gregg Wind",day:"2nd Thursday",city:"Los Angeles",time:"12:00pm – 1:30pm"},
+  {region:"LA Core",type:"Affinity",name:"LGBT+ Allies",leader:"Regina Lark",day:"4th Monday",city:"Los Angeles",time:"11:30am – 1:30pm"},
+  {region:"LA Core",type:"Affinity",name:"Pasadena Estate & Succession Planning",leader:"Mary McDonald Winners",day:"3rd Wednesday",city:"Pasadena",time:"12:00pm – 1:30pm"},
+  {region:"LA Core",type:"Affinity",name:"San Gabriel Valley Real Estate",leader:"David Barulich",day:"2nd Tuesday",city:"Pasadena",time:"12:00pm – 1:30pm"},
+  {region:"LA Core",type:"Affinity",name:"Seniors and Special Needs",leader:"Marty Stevens-Heebner",day:"4th Tuesday",city:"Los Angeles",time:"11:30am – 1:30pm"},
+  {region:"LA Core",type:"Affinity",name:"Women's (Core)",leader:"Jae Wu",day:"3rd Monday",city:"Los Angeles",time:"11:30am – 1:30pm"},
+  // LA Westside - Home
+  {region:"LA Westside",type:"Home",name:"Brentwood",leader:"Nannina Angioni",day:"3rd Thursday",city:"Los Angeles",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Century City 1",leader:"Grant Withers",day:"3rd Tuesday",city:"Los Angeles",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Century City 2",leader:"Jeffrey Wolf",day:"1st Thursday",city:"Los Angeles",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Century City 3",leader:"Ilan Heimanson",day:"4th Wednesday",city:"Los Angeles",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Century City 4",leader:"Colin Dun",day:"4th Friday",city:"Los Angeles",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Century City 5",leader:"Nick Wolf",day:"2nd Wednesday",city:"Los Angeles",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Century City 6",leader:"Marlo Van Oorschot",day:"3rd Thursday",city:"Los Angeles",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Century City 7",leader:"Robert Heller",day:"1st Thursday",city:"Los Angeles",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Culver City",leader:"Richard Clayman",day:"4th Tuesday",city:"Playa Vista",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Entertainment 1",leader:"Joey Behrstock",day:"2nd Tuesday",city:"Los Angeles",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Entertainment 2",leader:"Stephen Smith",day:"3rd Thursday",city:"Los Angeles",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Manhattan Beach",leader:"Eric Gharakanian",day:"1st Wednesday",city:"Manhattan Beach",time:"11:30am – 1:30pm"},
+  {region:"LA Westside",type:"Home",name:"Pacific Business Corridor",leader:"Carol Glover",day:"1st Thursday",city:"El Segundo",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"South Bay Classic",leader:"Jesse Laikin",day:"2nd Tuesday",city:"El Segundo",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"South Bay 2",leader:"Steve Brodhead",day:"3rd Wednesday",city:"El Segundo",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"South Bay 3",leader:"Anthony Walker",day:"3rd Friday",city:"Torrance",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"South Bay 4",leader:"Steve Goldstein",day:"3rd Thursday",city:"El Segundo",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Silicon Beach 1",leader:"Mark Jaffe",day:"1st Friday",city:"Santa Monica",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Silicon Beach 2",leader:"Chris King",day:"1st Tuesday",city:"Santa Monica",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Santa Monica 1",leader:"David Wimmer",day:"2nd Thursday",city:"Santa Monica",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Santa Monica 2",leader:"Eli Appel",day:"3rd Wednesday",city:"Santa Monica",time:"11:30am – 1:30pm"},
+  {region:"LA Westside",type:"Home",name:"Santa Monica 3",leader:"Steven Klein",day:"2nd Wednesday",city:"Santa Monica",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Santa Monica 5",leader:"Jamie Cooperstein",day:"3rd Wednesday",city:"Santa Monica",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Santa Monica 6",leader:"Jonathan Forster",day:"2nd Friday",city:"Santa Monica",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Torrance",leader:"Jennifer Novak",day:"4th Tuesday",city:"Torrance",time:"11:30am – 1:30pm"},
+  {region:"LA Westside",type:"Home",name:"Venice",leader:"Kate Pletcher",day:"1st Wednesday",city:"Venice",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"West Los Angeles",leader:"Justin Krane",day:"4th Thursday",city:"Los Angeles",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"West Los Angeles 2",leader:"Mayer Nazarian",day:"3rd Friday",city:"Los Angeles",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Westside",leader:"Amanda Scott",day:"4th Friday",city:"Los Angeles",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Westside 2",leader:"Rances Sainz",day:"1st Tuesday",city:"Los Angeles",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Westside 3",leader:"Russell Glazer",day:"1st Friday",city:"Los Angeles",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Westwood",leader:"Ji Park",day:"3rd Tuesday",city:"Los Angeles",time:"7:00am – 9:00am"},
+  {region:"LA Westside",type:"Home",name:"Westwood Village",leader:"Whit Prouty",day:"2nd Thursday",city:"Los Angeles",time:"7:00am – 9:00am"},
+  // LA Westside - Affinity
+  {region:"LA Westside",type:"Affinity",name:"South Bay Women's",leader:"Laura Bruno",day:"2nd Friday",city:"El Segundo",time:"11:30am – 1:00pm"},
+  {region:"LA Westside",type:"Affinity",name:"LAX/Long Beach Real Estate",leader:"Jennifer Goldstein",day:"2nd Wednesday",city:"El Segundo",time:"11:30am – 1:00pm"},
+  {region:"LA Westside",type:"Affinity",name:"Capital Markets",leader:"Haze Walker",day:"1st Tuesday",city:"Los Angeles",time:"12:00pm – 1:30pm"},
+  {region:"LA Westside",type:"Affinity",name:"Branding, Licensing, and IP",leader:"Harold Weitzberg",day:"3rd Wednesday",city:"Los Angeles",time:"12:30pm – 2:00pm"},
+  {region:"LA Westside",type:"Affinity",name:"Family Business",leader:"Sarah Spector",day:"4th Thursday",city:"Los Angeles",time:"12:00pm – 1:30pm"},
+  {region:"LA Westside",type:"Affinity",name:"Growth Affinity Group",leader:"Montgomery Zimmerman",day:"3rd Tuesday",city:"Los Angeles",time:"6:45pm – 8:30pm"},
+  {region:"LA Westside",type:"Affinity",name:"Healthcare Advisors",leader:"Bill Richardson",day:"1st Tuesday",city:"Los Angeles",time:"7:30am – 9:00am"},
+  {region:"LA Westside",type:"Affinity",name:"Innovation",leader:"Mark Wald",day:"2nd Monday",city:"Los Angeles",time:"11:30am – 1:30pm"},
+  {region:"LA Westside",type:"Affinity",name:"LA Lawyers and Legal Professionals",leader:"Michele Weiss",day:"2nd Tuesday",city:"Los Angeles",time:"11:30am – 1:30pm"},
+  {region:"LA Westside",type:"Affinity",name:"Middle Market",leader:"Lewis Stanton",day:"1st Friday",city:"Los Angeles",time:"12:00pm – 1:15pm"},
+  {region:"LA Westside",type:"Affinity",name:"M&A Capital Formation",leader:"Brian Davidoff",day:"4th Tuesday",city:"Los Angeles",time:"7:30am – 9:00am"},
+  {region:"LA Westside",type:"Affinity",name:"Non-Profit",leader:"Joan Ford",day:"1st Thursday",city:"Los Angeles",time:"12:00pm – 1:30pm"},
+  {region:"LA Westside",type:"Affinity",name:"Real Estate – Greater Los Angeles",leader:"Eric Erenstoft",day:"4th Wednesday",city:"Los Angeles",time:"12:00pm – 1:45pm"},
+  {region:"LA Westside",type:"Affinity",name:"Tax Masters",leader:"Al Knobloch",day:"2nd Wednesday",city:"Los Angeles",time:"12:00pm – 1:30pm"},
+  {region:"LA Westside",type:"Affinity",name:"Transactions & Transitions",leader:"Dan Fein",day:"3rd Thursday",city:"Los Angeles",time:"11:30am – 1:30pm"},
+  {region:"LA Westside",type:"Affinity",name:"Women's (Westside)",leader:"Gail Goldstein",day:"3rd Monday",city:"Los Angeles",time:"12:00pm – 1:30pm"},
+  // LA Valley - Home
+  {region:"LA Valley",type:"Home",name:"Calabasas 1",leader:"Scott Anderholt",day:"1st Tuesday",city:"Calabasas",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Calabasas 2",leader:"Samantha Scherr",day:"1st Tuesday",city:"Calabasas",time:"11:30am – 1:00pm"},
+  {region:"LA Valley",type:"Home",name:"Camarillo 1",leader:"Tom Means",day:"3rd Wednesday",city:"Camarillo",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Conejo",leader:"Scott Williams",day:"4th Thursday",city:"Simi Valley",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Encino 1",leader:"Jim Felton",day:"1st Wednesday",city:"Encino",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Encino 2",leader:"E. Mark Fishman",day:"4th Wednesday",city:"Encino",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Encino 3",leader:"Tina Alleguez",day:"2nd Tuesday",city:"Encino",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Encino 4",leader:"David Schnider",day:"3rd Tuesday",city:"Encino",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Los Angeles Valley 1",leader:"Kristy Melton",day:"2nd Tuesday",city:"LAV/Zoom",time:"7:00am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Mergers & Acquisitions 2",leader:"David Bonrouhi",day:"4th Thursday",city:"Encino",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Moorpark",leader:"Douglas Ridley",day:"1st Wednesday",city:"Moorpark",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Oxnard",leader:"James Bean",day:"4th Wednesday",city:"Oxnard",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Santa Barbara 1",leader:"Renee Not",day:"1st Thursday",city:"Santa Barbara",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Santa Barbara 2",leader:"Jeff Forster",day:"2nd Wednesday",city:"Santa Barbara",time:"11:30am – 1:00pm"},
+  {region:"LA Valley",type:"Home",name:"Santa Barbara 3",leader:"Jennifer Duffy",day:"3rd Tuesday",city:"Santa Barbara",time:"11:30am – 1:00pm"},
+  {region:"LA Valley",type:"Home",name:"Santa Clarita Valley",leader:"Nikki Hashemi",day:"3rd Thursday",city:"Valencia",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Sherman Oaks 1",leader:"Robert Klein",day:"2nd Wednesday",city:"Sherman Oaks",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Sherman Oaks 2",leader:"Chris Bandouveris",day:"3rd Friday",city:"Sherman Oaks",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Sherman Oaks 3",leader:"Adam Grant",day:"3rd Tuesday",city:"Sherman Oaks",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Sherman Oaks 4",leader:"Jesse Israel",day:"3rd Thursday",city:"Sherman Oaks",time:"11:00am – 1:00pm"},
+  {region:"LA Valley",type:"Home",name:"Ventura",leader:"John Troxel",day:"2nd Friday",city:"Oxnard",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Ventura 2",leader:"Robert Curtis",day:"3rd Friday",city:"Oxnard",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Ventura 3",leader:"Kristen Blunt",day:"3rd Thursday",city:"Oxnard",time:"11:30am – 1:00pm"},
+  {region:"LA Valley",type:"Home",name:"Ventura 4",leader:"Brenda Allison",day:"2nd Thursday",city:"Oxnard",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Warner Center 1",leader:"Janice Miller",day:"1st Thursday",city:"Woodland Hills",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Westlake 1",leader:"Davis Blaine",day:"1st Friday",city:"Westlake Village",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Westlake 2",leader:"Don Lanson",day:"4th Friday",city:"Westlake Village",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Westlake 3",leader:"Adam Treiger",day:"3rd Thursday",city:"Westlake Village",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Westlake 4",leader:"Kevin Shaw",day:"2nd Thursday",city:"Westlake Village",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Westlake 5",leader:"Brian Sullivan",day:"4th Thursday",city:"Westlake Village",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Westlake 6",leader:"Randi Sorenson",day:"2nd Wednesday",city:"Westlake Village",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Westlake 7",leader:"Kyle Marks",day:"4th Tuesday",city:"Westlake Village",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Westlake 8",leader:"Sarah Reznick",day:"3rd Tuesday",city:"Westlake Village",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Woodland Hills 1",leader:"Joe Seetoo",day:"3rd Tuesday",city:"Woodland Hills",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Woodland Hills 2",leader:"Rick Pearson",day:"2nd Thursday",city:"Woodland Hills",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Woodland Hills 3",leader:"David Jacobs",day:"4th Wednesday",city:"Woodland Hills",time:"7:30am – 9:00am"},
+  {region:"LA Valley",type:"Home",name:"Woodland Hills 4",leader:"Jeff Kobulnick",day:"2nd Wednesday",city:"Woodland Hills",time:"7:30am – 9:00am"},
+  // LA Valley - Affinity
+  {region:"LA Valley",type:"Affinity",name:"SoCal Cannabis",leader:"Greg Hill",day:"4th Tuesday",city:"Woodland Hills",time:"12:00pm – 1:30pm"},
+  {region:"LA Valley",type:"Affinity",name:"Conejo Valley Real Estate",leader:"Bruce Stein",day:"4th Thursday",city:"Westlake",time:"12:00pm – 1:30pm"},
+  {region:"LA Valley",type:"Affinity",name:"Valley Distributors & Manufacturers",leader:"Jim Twerdahl",day:"2nd Wednesday",city:"Encino",time:"12:00pm – 1:30pm"},
+  {region:"LA Valley",type:"Affinity",name:"Valley Estate and Succession Planning",leader:"Heath Goldman",day:"1st Tuesday",city:"Woodland Hills",time:"12:00pm – 1:30pm"},
+  {region:"LA Valley",type:"Affinity",name:"Valley Business Professional Services",leader:"David Hilton",day:"3rd Wednesday",city:"Woodland Hills",time:"12:00pm – 1:30pm"},
+  {region:"LA Valley",type:"Affinity",name:"Valley Lawyers",leader:"Jacob Stein",day:"3rd Tuesday",city:"Encino",time:"12:00pm – 1:30pm"},
+  {region:"LA Valley",type:"Affinity",name:"Valley Real Estate",leader:"Aaron Belliston",day:"2nd Thursday",city:"Encino",time:"12:00pm – 1:30pm"},
+  {region:"LA Valley",type:"Affinity",name:"Valley Women's",leader:"Regina Korrossy",day:"1st Wednesday",city:"LAV",time:"7:00am – 9:00am"},
+  {region:"LA Valley",type:"Affinity",name:"Start Up and Entrepreneurship",leader:"Marc Honorof",day:"4th Friday",city:"Westlake Village",time:"11:30am – 1:30pm"},
+  {region:"LA Valley",type:"Affinity",name:"Westlake Estate and Succession Planning",leader:"Louis Ashamallah",day:"1st Friday",city:"Westlake Village",time:"12:00pm – 1:30pm"},
+  {region:"LA Valley",type:"Affinity",name:"Westlake Lawyers",leader:"Laura Withrow",day:"3rd Friday",city:"Westlake Village",time:"12:00pm – 1:30pm"},
+];
+
+// ── Assign coordinates with jitter ──
+const cityGroupCount = {};
+const cityGroupIndex = {};
+GROUPS.forEach(g => {
+  const key = g.city;
+  cityGroupCount[key] = (cityGroupCount[key] || 0) + 1;
+});
+GROUPS.forEach(g => {
+  const key = g.city;
+  cityGroupIndex[key] = (cityGroupIndex[key] || 0);
+  const base = CITY_COORDS[g.city] || CITY_COORDS["Los Angeles"];
+  const coords = jitter(base, cityGroupIndex[key], cityGroupCount[key]);
+  g.lat = coords[0];
+  g.lng = coords[1];
+  g.distance = null;
+  cityGroupIndex[key]++;
+});
+
+// ── State ──
+let userLat = null, userLng = null;
+let userMarker = null;
+let markers = [];
+let currentSort = { field: 'name', asc: true };
+let filtered = [...GROUPS];
+
+// ── Map Init ──
+const map = L.map('map').setView([34.05, -118.40], 10);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors', maxZoom: 18
+}).addTo(map);
+
+function createIcon(type, size = 12) {
+  return L.divIcon({
+    className: type === 'Home' ? 'home-marker' : type === 'user' ? 'user-marker' : 'affinity-marker',
+    iconSize: [size, size], iconAnchor: [size/2, size/2]
+  });
+}
+
+// ── Distance Calculation (Haversine) ──
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 3958.8; // miles
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function updateDistances() {
+  GROUPS.forEach(g => {
+    g.distance = (userLat !== null) ? haversine(userLat, userLng, g.lat, g.lng) : null;
+  });
+}
+
+// ── Geocode user address via Nominatim ──
+async function geocodeAddress() {
+  const addr = document.getElementById('user-address').value.trim();
+  if (!addr) return;
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}&limit=1`);
+    const data = await res.json();
+    if (data.length === 0) { alert('Address not found. Try a more specific address.'); return; }
+    setUserLocation(parseFloat(data[0].lat), parseFloat(data[0].lon), addr);
+  } catch(e) { alert('Geocoding error: ' + e.message); }
+}
+
+function useMyLocation() {
+  if (!navigator.geolocation) { alert('Geolocation not supported'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    setUserLocation(pos.coords.latitude, pos.coords.longitude, 'Your Location');
+    document.getElementById('user-address').value = `${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+  }, () => alert('Could not get your location. Please enter an address instead.'));
+}
+
+function setUserLocation(lat, lng, label) {
+  userLat = lat; userLng = lng;
+  if (userMarker) map.removeLayer(userMarker);
+  userMarker = L.marker([lat, lng], { icon: createIcon('user', 16), zIndexOffset: 1000 })
+    .addTo(map).bindPopup(`<strong>${label}</strong><br>Your location`);
+  updateDistances();
+  document.getElementById('sort-by').value = 'distance';
+  applyFilters();
+  map.setView([lat, lng], 11);
+}
+
+// ── Day ordering for sort ──
+const DAY_ORDER = { 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5 };
+const WEEK_ORDER = { '1st': 1, '2nd': 2, '3rd': 3, '4th': 4 };
+function daySort(dayStr) {
+  const parts = dayStr.split(' ');
+  return (WEEK_ORDER[parts[0]] || 0) * 10 + (DAY_ORDER[parts[1]] || 0);
+}
+
+// ── Filter & Render ──
+function applyFilters() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const region = document.getElementById('filter-region').value;
+  const type = document.getElementById('filter-type').value;
+  const day = document.getElementById('filter-day').value;
+  const sortField = document.getElementById('sort-by').value;
+
+  filtered = GROUPS.filter(g => {
+    if (region && g.region !== region) return false;
+    if (type && g.type !== type) return false;
+    if (day && !g.day.includes(day)) return false;
+    if (search && !(g.name.toLowerCase().includes(search) || g.leader.toLowerCase().includes(search) || g.city.toLowerCase().includes(search) || g.region.toLowerCase().includes(search))) return false;
+    return true;
+  });
+
+  filtered.sort((a, b) => {
+    switch(sortField) {
+      case 'distance': return (a.distance ?? 9999) - (b.distance ?? 9999);
+      case 'city': return a.city.localeCompare(b.city);
+      case 'day': return daySort(a.day) - daySort(b.day);
+      case 'type': return a.type.localeCompare(b.type);
+      case 'time': return a.time.localeCompare(b.time);
+      default: return a.name.localeCompare(b.name);
+    }
+  });
+
+  renderTable();
+  renderMarkers();
+  updateStats();
+}
+
+function sortBy(field) {
+  document.getElementById('sort-by').value = field;
+  applyFilters();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = filtered.map((g, i) => `
+    <tr onclick="focusGroup(${GROUPS.indexOf(g)})" data-idx="${GROUPS.indexOf(g)}">
+      <td><strong>${g.name}</strong><br><span style="color:#636e72;font-size:11px">${g.leader}</span></td>
+      <td><span class="badge ${g.type.toLowerCase()}">${g.type}</span></td>
+      <td>${g.city}</td>
+      <td style="white-space:nowrap">${g.day}</td>
+      <td style="white-space:nowrap">${g.time}</td>
+      <td class="distance-cell">${g.distance !== null ? g.distance.toFixed(1) + ' mi' : '—'}</td>
+    </tr>
+  `).join('');
+  document.getElementById('table-footer').textContent = `Showing ${filtered.length} of ${GROUPS.length} groups`;
+}
+
+function renderMarkers() {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+  filtered.forEach(g => {
+    const m = L.marker([g.lat, g.lng], { icon: createIcon(g.type) }).addTo(map);
+    const distHtml = g.distance !== null ? `<div class="popup-distance">${g.distance.toFixed(1)} miles from you</div>` : '';
+    m.bindPopup(`
+      <strong>${g.name}</strong><br>
+      <span style="color:#636e72">${g.type} Group &bull; ${g.region}</span><br>
+      Leader: ${g.leader}<br>
+      ${g.day} &bull; ${g.time}<br>
+      ${g.city}
+      ${distHtml}
+    `);
+    markers.push(m);
+  });
+}
+
+function focusGroup(idx) {
+  const g = GROUPS[idx];
+  map.setView([g.lat, g.lng], 13);
+  const mi = filtered.indexOf(g);
+  if (mi >= 0 && markers[mi]) markers[mi].openPopup();
+  document.querySelectorAll('.table-wrap tr.selected').forEach(r => r.classList.remove('selected'));
+  const row = document.querySelector(`tr[data-idx="${idx}"]`);
+  if (row) { row.classList.add('selected'); row.scrollIntoView({ block: 'nearest' }); }
+}
+
+function updateStats() {
+  const home = filtered.filter(g => g.type === 'Home').length;
+  const affinity = filtered.filter(g => g.type === 'Affinity').length;
+  const cities = new Set(filtered.map(g => g.city)).size;
+  document.getElementById('stat-total').textContent = filtered.length;
+  document.getElementById('stat-home').textContent = home;
+  document.getElementById('stat-affinity').textContent = affinity;
+  document.getElementById('stat-cities').textContent = cities;
+}
+
+// Allow Enter key on address input
+document.getElementById('user-address').addEventListener('keydown', e => {
+  if (e.key === 'Enter') geocodeAddress();
+});
+
+// ── Initial render ──
+applyFilters();
+</script>
+</body>
+</html>
