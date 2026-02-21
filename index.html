@@ -179,7 +179,15 @@
     .cal-day.today .cal-day-num { color: #C5A355; }
     .cal-day.outside .cal-day-num { color: #b2bec3; }
 
-    .cal-slots { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+    .cal-slots { display: flex; flex-direction: column; gap: 1px; flex: 1; }
+    .cal-time-section { border-radius: 4px; padding: 1px; }
+    .cal-time-section.section-morning { background: #f0f4ff; }
+    .cal-time-section.section-midday { background: #fff8f0; }
+    .cal-time-section.section-evening { background: #f0f0f8; }
+    .cal-time-header { font-size: 7px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 1px 3px; color: #888; border-bottom: 1px solid rgba(0,0,0,0.06); margin-bottom: 1px; }
+    .cal-time-section.section-morning .cal-time-header { color: #5a7fbf; }
+    .cal-time-section.section-midday .cal-time-header { color: #bf8a3a; }
+    .cal-time-section.section-evening .cal-time-header { color: #7a6abf; }
     .cal-slot {
       border-radius: 3px; padding: 2px 4px; font-size: 9px; cursor: pointer;
       display: flex; align-items: center; gap: 3px; min-height: 18px; transition: all 0.15s;
@@ -1088,20 +1096,22 @@ function renderCalendar() {
       continue;
     }
 
-    // Three slots: morning, lunch, evening
+    // Three sections: morning, midday, evening
     ['morning', 'lunch', 'evening'].forEach(slot => {
       const slotLabel = slot === 'morning' ? 'AM' : slot === 'lunch' ? 'PM' : 'EVE';
+      const sectionName = slot === 'morning' ? 'Morning' : slot === 'lunch' ? 'Midday' : 'Evening';
+      const sectionClass = slot === 'morning' ? 'section-morning' : slot === 'lunch' ? 'section-midday' : 'section-evening';
       const booked = meetings ? meetings.booked.filter(m => m.slot === slot) : [];
       const avail = meetings ? meetings.available.filter(m => m.slot === slot) : [];
 
+      html += `<div class="cal-time-section ${sectionClass}"><div class="cal-time-header">${sectionName}</div>`;
+
       if (booked.length > 0) {
-        // Show booked meetings
         booked.forEach(m => {
           const cls = m.group.type === 'Affinity' ? 'booked-affinity' : 'booked';
           html += `<div class="cal-slot ${cls}" onmouseenter="showTooltip(event,${m.idx},true)" onmouseleave="hideTooltip()">
             <span class="slot-label">${slotLabel}</span><span class="slot-name">${m.group.name}</span></div>`;
         });
-        // If also available in same slot
         if (avail.length > 0) {
           html += `<div class="cal-slot available" onclick="filterForSlot('${date.toISOString()}','${slot}')"
             onmouseenter="showSlotTooltip(event,'${key}','${slot}',false)" onmouseleave="hideTooltip()">
@@ -1109,15 +1119,15 @@ function renderCalendar() {
             <span class="slot-count">${avail.length}</span></div>`;
         }
       } else if (avail.length > 0) {
-        // Open slot with available meetings
         html += `<div class="cal-slot available" onclick="filterForSlot('${date.toISOString()}','${slot}')"
           onmouseenter="showSlotTooltip(event,'${key}','${slot}',false)" onmouseleave="hideTooltip()">
           <span class="slot-label">${slotLabel}</span><span class="slot-name">${avail.length} available</span>
           <span class="slot-count">${avail.length}</span></div>`;
       } else {
-        // Empty open slot
         html += `<div class="cal-slot open"><span class="slot-label">${slotLabel}</span><span class="slot-name">open</span></div>`;
       }
+
+      html += '</div>'; // close cal-time-section
     });
     html += '</div></div>';
   }
@@ -1502,9 +1512,15 @@ async function hubRegister(eventUrl) {
   }
 }
 
-// Check if a group is Hub-registered
-function isHubRegistered(groupIdx) {
-  return hubRegistrations.some(r => r.matchedGroupIdx === groupIdx);
+// Check if a group is Hub-registered (optionally for a specific date)
+function isHubRegistered(groupIdx, date) {
+  return hubRegistrations.some(r => {
+    if (r.matchedGroupIdx !== groupIdx) return false;
+    if (!date) return true; // no date filter = any match
+    if (!r.parsedDate) return false;
+    return r.parsedDate.getFullYear() === date.getFullYear()
+        && r.parsedDate.getMonth() === date.getMonth();
+  });
 }
 
 // Check if a date+slot has a Hub registration
@@ -1602,7 +1618,7 @@ renderCalendar = function() {
     const key = date.toDateString();
     if (!meetingsByDate[key]) meetingsByDate[key] = { booked: [], available: [], hubBooked: [] };
     const slot = getTimeSlot(g.time);
-    const hubReg = isHubRegistered(idx);
+    const hubReg = isHubRegistered(idx, date);
     if (hubReg) {
       meetingsByDate[key].hubBooked.push({ idx, slot, group: g });
     } else if (selectedMeetings.has(idx)) {
@@ -1647,9 +1663,13 @@ renderCalendar = function() {
 
     ['morning', 'lunch', 'evening'].forEach(slot => {
       const slotLabel = slot === 'morning' ? 'AM' : slot === 'lunch' ? 'PM' : 'EVE';
+      const sectionName = slot === 'morning' ? 'Morning' : slot === 'lunch' ? 'Midday' : 'Evening';
+      const sectionClass = slot === 'morning' ? 'section-morning' : slot === 'lunch' ? 'section-midday' : 'section-evening';
       const hubBooked = meetings ? meetings.hubBooked.filter(m => m.slot === slot) : [];
       const booked = meetings ? meetings.booked.filter(m => m.slot === slot) : [];
       const avail = meetings ? meetings.available.filter(m => m.slot === slot) : [];
+
+      html += `<div class="cal-time-section ${sectionClass}"><div class="cal-time-header">${sectionName}</div>`;
 
       // Hub-registered meetings (green)
       hubBooked.forEach(m => {
@@ -1676,6 +1696,8 @@ renderCalendar = function() {
       } else if (hubBooked.length === 0 && booked.length === 0) {
         html += `<div class="cal-slot open"><span class="slot-label">${slotLabel}</span><span class="slot-name">open</span></div>`;
       }
+
+      html += '</div>'; // close cal-time-section
     });
     html += '</div></div>';
   }
