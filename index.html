@@ -359,6 +359,7 @@
           <option value="">All Formats</option>
           <option value="In-Person">In-Person</option>
           <option value="Virtual">Virtual</option>
+          <option value="In-Person & Virtual">Hybrid</option>
         </select>
         <select id="sort-by" onchange="applyFilters()">
           <option value="name">Sort: Name</option>
@@ -653,6 +654,103 @@ const GROUPS = [
   {region:"LA Valley",type:"Affinity",name:"Westlake Lawyers",leader:"Laura Withrow",day:"3rd Friday",city:"Westlake Village",time:"12:00pm – 1:30pm"},
 ];
 
+// ── Hub Registrations (scraped from hub.provisors.com, Feb 20 2026) ──
+// These are Trevor's actual registered meetings — shown on calendar as green "Hub Registered" slots
+const HUB_REGISTRATIONS = [
+  {eventName:'SoCal Cannabis Affinity Group',location:'Virtual',startDate:'Tuesday, February 24, 2026, 11:30 AM',endDate:'Tuesday, February 24, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Real Estate Group - Greater Los Angeles',location:'In-Person',startDate:'Wednesday, February 25, 2026, 12:00 PM',endDate:'Wednesday, February 25, 2026, 01:45 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Westside',location:'Virtual',startDate:'Friday, February 27, 2026, 07:30 AM',endDate:'Friday, February 27, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'Start Up and Entrepreneurship Affinity Group',location:'Virtual',startDate:'Friday, February 27, 2026, 11:50 AM',endDate:'Friday, February 27, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Silicon Beach 2',location:'In-Person & Virtual',startDate:'Tuesday, March 03, 2026, 07:30 AM',endDate:'Tuesday, March 03, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'Capital Markets Affinity Group',location:'Virtual',startDate:'Tuesday, March 03, 2026, 12:00 PM',endDate:'Tuesday, March 03, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Non-Profit Affinity Group',location:'Virtual',startDate:'Thursday, March 05, 2026, 12:00 PM',endDate:'Thursday, March 05, 2026, 01:00 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Westside 3',location:'In-Person',startDate:'Friday, March 06, 2026, 07:30 AM',endDate:'Friday, March 06, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'Middle Market Affinity Group',location:'In-Person',startDate:'Friday, March 06, 2026, 12:00 PM',endDate:'Friday, March 06, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Innovation Affinity Group',location:'Virtual',startDate:'Monday, March 09, 2026, 11:30 AM',endDate:'Monday, March 09, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'San Gabriel Valley Real Estate Affinity Group',location:'In-Person',startDate:'Tuesday, March 10, 2026, 12:00 PM',endDate:'Tuesday, March 10, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Century City 5',location:'In-Person',startDate:'Wednesday, March 11, 2026, 07:30 AM',endDate:'Wednesday, March 11, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'LAX/Long Beach Real Estate Affinity',location:'Virtual',startDate:'Wednesday, March 11, 2026, 11:00 AM',endDate:'Wednesday, March 11, 2026, 01:00 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Westwood Village',location:'In-Person',startDate:'Thursday, March 12, 2026, 07:30 AM',endDate:'Thursday, March 12, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'Valley Real Estate Affinity Group',location:'In-Person',startDate:'Thursday, March 12, 2026, 12:00 PM',endDate:'Thursday, March 12, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Mid City',location:'In-Person',startDate:'Friday, March 13, 2026, 07:30 AM',endDate:'Friday, March 13, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'Hollywood',location:'In-Person',startDate:'Tuesday, March 17, 2026, 07:00 AM',endDate:'Tuesday, March 17, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'Beverly Hills 2',location:'In-Person & Virtual',startDate:'Wednesday, March 18, 2026, 07:30 AM',endDate:'Wednesday, March 18, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'Rancho Park',location:'In-Person',startDate:'Thursday, March 19, 2026, 07:30 AM',endDate:'Thursday, March 19, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'Culver City',location:'In-Person',startDate:'Tuesday, March 24, 2026, 07:30 AM',endDate:'Tuesday, March 24, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'SoCal Cannabis Affinity Group',location:'Virtual',startDate:'Tuesday, March 24, 2026, 11:30 AM',endDate:'Tuesday, March 24, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Real Estate Group - Greater Los Angeles',location:'In-Person',startDate:'Wednesday, March 25, 2026, 12:00 PM',endDate:'Wednesday, March 25, 2026, 01:45 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Westside',location:'Virtual',startDate:'Friday, March 27, 2026, 07:30 AM',endDate:'Friday, March 27, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'Start Up and Entrepreneurship Affinity Group',location:'Virtual',startDate:'Friday, March 27, 2026, 11:50 AM',endDate:'Friday, March 27, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Non-Profit Affinity Group',location:'Virtual',startDate:'Thursday, April 02, 2026, 12:00 PM',endDate:'Thursday, April 02, 2026, 01:00 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Middle Market Affinity Group',location:'In-Person',startDate:'Friday, April 03, 2026, 12:00 PM',endDate:'Friday, April 03, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Capital Markets Affinity Group',location:'Virtual',startDate:'Tuesday, April 07, 2026, 12:00 PM',endDate:'Tuesday, April 07, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Beverly Hills 4',location:'In-Person',startDate:'Wednesday, April 08, 2026, 07:30 AM',endDate:'Wednesday, April 08, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'LAX/Long Beach Real Estate Affinity',location:'In-Person',startDate:'Wednesday, April 08, 2026, 11:00 AM',endDate:'Wednesday, April 08, 2026, 01:00 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Valley Real Estate Affinity Group',location:'In-Person',startDate:'Thursday, April 09, 2026, 12:00 PM',endDate:'Thursday, April 09, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Innovation Affinity Group',location:'Virtual',startDate:'Monday, April 13, 2026, 11:30 AM',endDate:'Monday, April 13, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Century City 6',location:'Virtual',startDate:'Thursday, April 16, 2026, 07:30 AM',endDate:'Thursday, April 16, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'Hollywood',location:'In-Person',startDate:'Tuesday, April 21, 2026, 07:00 AM',endDate:'Tuesday, April 21, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'Real Estate Group - Greater Los Angeles',location:'In-Person',startDate:'Wednesday, April 22, 2026, 12:00 PM',endDate:'Wednesday, April 22, 2026, 01:45 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Westside',location:'Virtual',startDate:'Friday, April 24, 2026, 07:30 AM',endDate:'Friday, April 24, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'Start Up and Entrepreneurship Affinity Group',location:'Virtual',startDate:'Friday, April 24, 2026, 11:50 AM',endDate:'Friday, April 24, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'SoCal Cannabis Affinity Group',location:'Virtual',startDate:'Tuesday, April 28, 2026, 11:30 AM',endDate:'Tuesday, April 28, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Capital Markets Affinity Group',location:'Virtual',startDate:'Tuesday, May 05, 2026, 12:00 PM',endDate:'Tuesday, May 05, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Non-Profit Affinity Group',location:'Virtual',startDate:'Thursday, May 07, 2026, 12:00 PM',endDate:'Thursday, May 07, 2026, 01:00 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Innovation Affinity Group',location:'Virtual',startDate:'Monday, May 11, 2026, 11:30 AM',endDate:'Monday, May 11, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Beverly Hills 4',location:'In-Person',startDate:'Wednesday, May 13, 2026, 07:30 AM',endDate:'Wednesday, May 13, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'Tax Masters Affinity Group',location:'Virtual',startDate:'Wednesday, May 13, 2026, 11:45 AM',endDate:'Wednesday, May 13, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Valley Real Estate Affinity Group',location:'In-Person',startDate:'Thursday, May 14, 2026, 12:00 PM',endDate:'Thursday, May 14, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Hollywood',location:'In-Person',startDate:'Tuesday, May 19, 2026, 07:00 AM',endDate:'Tuesday, May 19, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'Century City 6',location:'In-Person',startDate:'Thursday, May 21, 2026, 07:30 AM',endDate:'Thursday, May 21, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'Start Up and Entrepreneurship Affinity Group',location:'Virtual',startDate:'Friday, May 22, 2026, 11:50 AM',endDate:'Friday, May 22, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'SoCal Cannabis Affinity Group',location:'Virtual',startDate:'Tuesday, May 26, 2026, 11:30 AM',endDate:'Tuesday, May 26, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Real Estate Group - Greater Los Angeles',location:'In-Person',startDate:'Wednesday, May 27, 2026, 12:00 PM',endDate:'Wednesday, May 27, 2026, 01:45 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Capital Markets Affinity Group',location:'Virtual',startDate:'Tuesday, June 02, 2026, 12:00 PM',endDate:'Tuesday, June 02, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Non-Profit Affinity Group',location:'Virtual',startDate:'Thursday, June 04, 2026, 12:00 PM',endDate:'Thursday, June 04, 2026, 01:00 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Innovation Affinity Group',location:'Virtual',startDate:'Monday, June 08, 2026, 11:30 AM',endDate:'Monday, June 08, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'San Gabriel Valley Real Estate Affinity Group',location:'In-Person',startDate:'Tuesday, June 09, 2026, 12:00 PM',endDate:'Tuesday, June 09, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'LAX/Long Beach Real Estate Affinity',location:'Virtual',startDate:'Wednesday, June 10, 2026, 11:00 AM',endDate:'Wednesday, June 10, 2026, 01:00 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Valley Real Estate Affinity Group',location:'In-Person',startDate:'Thursday, June 11, 2026, 12:00 PM',endDate:'Thursday, June 11, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Mid City',location:'In-Person',startDate:'Friday, June 12, 2026, 07:30 AM',endDate:'Friday, June 12, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'Hollywood',location:'Virtual',startDate:'Tuesday, June 16, 2026, 07:00 AM',endDate:'Tuesday, June 16, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'SoCal Cannabis Affinity Group',location:'Virtual',startDate:'Tuesday, June 23, 2026, 11:30 AM',endDate:'Tuesday, June 23, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Real Estate Group - Greater Los Angeles',location:'In-Person',startDate:'Wednesday, June 24, 2026, 12:00 PM',endDate:'Wednesday, June 24, 2026, 01:45 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Start Up and Entrepreneurship Affinity Group',location:'Virtual',startDate:'Friday, June 26, 2026, 11:50 AM',endDate:'Friday, June 26, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Non-Profit Affinity Group',location:'Virtual',startDate:'Thursday, July 02, 2026, 12:00 PM',endDate:'Thursday, July 02, 2026, 01:00 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Capital Markets Affinity Group',location:'Virtual',startDate:'Tuesday, July 07, 2026, 12:00 PM',endDate:'Tuesday, July 07, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'LAX/Long Beach Real Estate Affinity',location:'In-Person',startDate:'Wednesday, July 08, 2026, 11:00 AM',endDate:'Wednesday, July 08, 2026, 01:00 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Valley Real Estate Affinity Group',location:'In-Person',startDate:'Thursday, July 09, 2026, 12:00 PM',endDate:'Thursday, July 09, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Innovation Affinity Group',location:'Virtual',startDate:'Monday, July 13, 2026, 11:30 AM',endDate:'Monday, July 13, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Hollywood',location:'In-Person',startDate:'Tuesday, July 21, 2026, 07:00 AM',endDate:'Tuesday, July 21, 2026, 09:00 AM',eventType:'Home Group Meeting'},
+  {eventName:'Real Estate Group - Greater Los Angeles',location:'In-Person',startDate:'Wednesday, July 22, 2026, 12:00 PM',endDate:'Wednesday, July 22, 2026, 01:45 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'Start Up and Entrepreneurship Affinity Group',location:'Virtual',startDate:'Friday, July 24, 2026, 11:50 AM',endDate:'Friday, July 24, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+  {eventName:'SoCal Cannabis Affinity Group',location:'Virtual',startDate:'Tuesday, July 28, 2026, 11:30 AM',endDate:'Tuesday, July 28, 2026, 01:30 PM',eventType:'Affinity Group Meeting'},
+];
+
+// ── Parse embedded Hub registrations on load ──
+// Match each to a GROUPS entry and set format data
+function initHubRegistrations() {
+  HUB_REGISTRATIONS.forEach(reg => {
+    // Parse date
+    const dm = reg.startDate.match(/\w+,\s+(\w+)\s+(\d+),\s+(\d{4}),?\s+(\d+:\d+\s+\w+)/);
+    if (dm) reg.parsedDate = new Date(`${dm[1]} ${dm[2]}, ${dm[3]} ${dm[4]}`);
+    // Match to group
+    reg.matchedGroupIdx = matchHubToGroup(reg.eventName);
+    reg.eventType = reg.eventType.includes('Home') ? 'Home' : 'Affinity';
+    // Set format on the matched group
+    if (reg.matchedGroupIdx >= 0) {
+      const loc = reg.location;
+      if (loc === 'Virtual' || loc === 'In-Person' || loc === 'In-Person & Virtual') {
+        GROUPS[reg.matchedGroupIdx].format = loc;
+      }
+      // Auto-select matched groups
+      selectedMeetings.add(reg.matchedGroupIdx);
+    }
+  });
+  // Set as the default hubRegistrations
+  hubRegistrations = HUB_REGISTRATIONS;
+}
+
 // ── Assign coordinates with jitter ──
 const cityGroupCount = {}, cityGroupIndex = {};
 // Count groups per location key (neighborhood or city) for jitter
@@ -824,6 +922,7 @@ function renderTable() {
     const checked = selectedMeetings.has(idx) ? 'checked' : '';
     const fmtBadge = g.format === 'Virtual' ? '<span class="badge virtual">Virtual</span>'
       : g.format === 'In-Person' ? '<span class="badge in-person">In-Person</span>'
+      : g.format === 'In-Person & Virtual' ? '<span class="badge hybrid">Hybrid</span>'
       : '<span style="color:#aaa;font-size:10px">—</span>';
     return `<tr onclick="focusGroup(${idx})" data-idx="${idx}" class="${selectedMeetings.has(idx)?'selected':''}">
       <td class="cb-col" onclick="event.stopPropagation()"><input type="checkbox" ${checked} onchange="toggleSelection(${idx},this.checked)" /></td>
@@ -1463,6 +1562,7 @@ renderTable = function() {
     const rowClass = `${selectedMeetings.has(idx)?'selected':''} ${hubReg?'hub-registered':''}`;
     const fmtBadge = g.format === 'Virtual' ? '<span class="badge virtual">Virtual</span>'
       : g.format === 'In-Person' ? '<span class="badge in-person">In-Person</span>'
+      : g.format === 'In-Person & Virtual' ? '<span class="badge hybrid">Hybrid</span>'
       : '<span style="color:#aaa;font-size:10px">—</span>';
     return `<tr onclick="focusGroup(${idx})" data-idx="${idx}" class="${rowClass}">
       <td class="cb-col" onclick="event.stopPropagation()"><input type="checkbox" ${checked} onchange="toggleSelection(${idx},this.checked)" /></td>
@@ -1649,8 +1749,9 @@ openHub = function() {
 };
 
 // ── Init ──
-loadSelections();
-loadHubData();
+initHubRegistrations(); // load embedded Hub data first (sets formats + selections)
+loadSelections();       // then overlay any user localStorage selections
+loadHubData();          // then load any cached live-sync data (overrides embedded)
 applyFilters();
 </script>
 </body>

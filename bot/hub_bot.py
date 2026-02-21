@@ -116,48 +116,117 @@ class HubBot:
 
     # ── Scrape My Registrations ──
 
+    async def _scrape_registration_page(self):
+        """Scrape the current registration page and return parsed events."""
+        return await self.page.evaluate("""() => {
+            const text = document.body.innerText;
+            // Parse the page text to extract registration blocks
+            // Format: "Event Name, Virtual/In-Person - Month Year\\nDay, Date, StartTime\\nDay, Date, EndTime\\nPacific\\nType\\nGuest-Status"
+            const pattern = /^(.+?,\s*(?:Virtual|In-Person|In-Person & Virtual)\s*-\s*.+?\d{4})$/gm;
+            const events = [];
+            const lines = text.split('\\n').map(l => l.trim());
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const match = line.match(/^(.+?),\\s*(Virtual|In-Person|In-Person & Virtual)\\s*-\\s*(.+)$/);
+                if (!match) continue;
+
+                const eventName = match[1].trim();
+                const location = match[2];
+                const monthYear = match[3];
+                const startDate = (lines[i+1] || '').trim();
+                const endDate = (lines[i+2] || '').trim();
+                const timezone = (lines[i+3] || '').trim();
+                const eventType = (lines[i+4] || '').trim();
+                const guestStatus = (lines[i+5] || '').trim();
+
+                // Validate it looks like a real event (start date should have a day name)
+                if (!startDate.match(/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/)) continue;
+
+                events.push({
+                    eventName, location, monthYear,
+                    startDate, endDate, timezone,
+                    eventType, guestStatus
+                });
+            }
+
+            // Also grab the view/calendar links for each event
+            const actionLinks = [];
+            document.querySelectorAll('a[href*="viewregistration"], a[href*="addtocalendar"]').forEach(a => {
+                actionLinks.push({ text: a.innerText.trim(), href: a.href });
+            });
+
+            // Check for pagination
+            const pageInfo = text.match(/Page\\s+(\\d+)\\s+of\\s+(\\d+)/);
+            const currentPage = pageInfo ? parseInt(pageInfo[1]) : 1;
+            const totalPages = pageInfo ? parseInt(pageInfo[2]) : 1;
+
+            return {
+                events,
+                actionLinks,
+                currentPage,
+                totalPages,
+                hasNext: currentPage < totalPages
+            };
+        }""")
+
     async def get_my_registrations(self):
         """
-        Navigate to My Registrations and scrape all registered meetings.
-        Returns list of dicts with event details.
+        Navigate to My Registrations and scrape ALL pages of registered meetings.
+        Returns list of parsed event dicts.
         """
         await self.ensure_logged_in()
         await self.page.goto(MY_REGISTRATIONS_URL, wait_until="networkidle", timeout=30000)
         await self.page.wait_for_timeout(3000)
         await self.screenshot("my_registrations")
 
-        registrations = await self.page.evaluate("""() => {
-            const results = [];
-            // Broad selector: grab any container with event/registration content
-            const containers = document.querySelectorAll(
-                '[class*="registration"], [class*="Registration"], [class*="event"], ' +
-                '[class*="Event"], [class*="card"], [class*="Card"], ' +
-                'table tbody tr, .slds-card, .slds-tile, ' +
-                '[class*="list-item"], [class*="ListItem"], [class*="row"]'
-            );
-            containers.forEach(el => {
-                const text = (el.innerText || el.textContent || '').trim();
-                if (text.length > 20 && text.length < 2000) {
-                    const links = [];
-                    el.querySelectorAll('a[href]').forEach(a => {
-                        links.push({ text: a.innerText.trim(), href: a.href });
-                    });
-                    results.push({ text: text.substring(0, 800), links });
-                }
-            });
+        all_events = []
+        page_num = 1
 
-            // All links on page
-            const allLinks = [];
-            document.querySelectorAll('a[href]').forEach(a => {
-                const t = a.innerText.trim();
-                if (t.length > 2) allLinks.push({ text: t.substring(0, 200), href: a.href });
-            });
+        while True:
+            result = await self._scrape_registration_page()
+            all_events.extend(result.get("events", []))
+            total_pages = result.get("totalPages", 1)
+            print(f"  Registrations page {page_num}/{total_pages}: {len(result.get('events', []))} events")
 
-            const pageText = document.body.innerText.substring(0, 8000);
-            return { cards: results, links: allLinks, pageText };
-        }""")
+            if not result.get("hasNext"):
+                break
 
-        return registrations
+            # Click the Next button (Playwright locator, not querySelector)
+            next_btn = self.page.locator("a:has-text('Next')").first
+            if not await next_btn.count():
+                # Try alternate: look for link with "Next" in title
+                next_btn = self.page.locator("a[title='Next']").first
+                if not await next_btn.count():
+                    break
+
+            await next_btn.click()
+            await self.page.wait_for_load_state("networkidle", timeout=15000)
+            await self.page.wait_for_timeout(2000)
+            page_num += 1
+
+            # Safety limit
+            if page_num > 20:
+                break
+
+        # Assign action links (View/Calendar URLs) by matching order
+        # Re-scrape all links from the page for the last page
+        # We'll pair them with events by index from each page
+
+        # Deduplicate
+        seen = set()
+        unique_events = []
+        for evt in all_events:
+            key = f"{evt['eventName']}|{evt['startDate']}"
+            if key not in seen:
+                seen.add(key)
+                unique_events.append(evt)
+
+        return {
+            "events": unique_events,
+            "total": len(unique_events),
+            "pages_scraped": page_num,
+        }
 
     # ── Scrape Upcoming Events ──
 
@@ -434,11 +503,10 @@ async def main():
             print("MY REGISTRATIONS")
             print("="*60)
             regs = await bot.get_my_registrations()
-            print(f"Cards found: {len(regs.get('cards', []))}")
-            print(f"Links found: {len(regs.get('links', []))}")
-            print(f"Page text (first 500 chars):\n{regs['pageText'][:500]}")
-            for link in regs.get('links', [])[:15]:
-                print(f"  {link['text'][:60]} → {link['href']}")
+            print(f"Total events: {regs.get('total', 0)} across {regs.get('pages_scraped', 1)} pages")
+            for evt in regs.get('events', []):
+                loc = evt.get('location', '?')
+                print(f"  [{loc}] {evt['eventName']} — {evt['startDate']}")
 
             print("\n" + "="*60)
             print("UPCOMING EVENTS")
