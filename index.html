@@ -798,7 +798,7 @@ let calYear, calMonth;
 // My Home Group — stored as group index, default to Hollywood
 let myHomeGroupIdx = parseInt(localStorage.getItem('provisors-home-group') ?? '-1');
 if (myHomeGroupIdx < 0) { myHomeGroupIdx = GROUPS.findIndex(g => g.name === 'Hollywood'); localStorage.setItem('provisors-home-group', myHomeGroupIdx); }
-function setMyHomeGroup(idx) { myHomeGroupIdx = idx; localStorage.setItem('provisors-home-group', idx); renderTable(); renderCalendar(); renderMyMeetings(); }
+function setMyHomeGroup(idx) { myHomeGroupIdx = (myHomeGroupIdx === idx) ? -1 : idx; localStorage.setItem('provisors-home-group', myHomeGroupIdx); renderTable(); renderCalendar(); renderMyMeetings(); }
 // Favorites & Avoid lists
 const favoriteGroups = new Set(JSON.parse(localStorage.getItem('provisors-favorites') || '[]'));
 const avoidGroups = new Set(JSON.parse(localStorage.getItem('provisors-avoid') || '[]'));
@@ -1608,12 +1608,12 @@ renderTable = function() {
     const hubBadge = hubReg ? '<span class="hub-reg-badge">HUB</span>' : '';
     const isMyHome = idx === myHomeGroupIdx;
     const homeBadge = isMyHome ? ' <span style="color:#1a7f37;font-size:10px;font-weight:700;">&#9733; MY HOME</span>' : '';
-    const homeBtn = g.type === 'Home' && !isMyHome
-      ? `<span onclick="event.stopPropagation();setMyHomeGroup(${idx})" title="Set as my home group" style="cursor:pointer;color:#aaa;font-size:10px;margin-left:4px;">&#9734;</span>` : '';
     const isFav = favoriteGroups.has(idx);
     const isAvoid = avoidGroups.has(idx);
-    const favBtn = `<span onclick="event.stopPropagation();event.preventDefault();toggleFavorite(${idx})" title="${isFav?'Remove from favorites':'Add to favorites'}" style="cursor:pointer;font-size:13px;padding:2px 6px;${isFav?'color:#e74c3c;':'color:#ccc;'}">${isFav?'&#10084;':'&#9825;'}</span>`;
-    const avoidBtn = `<span onclick="event.stopPropagation();event.preventDefault();toggleAvoid(${idx})" title="${isAvoid?'Remove from avoid list':'Add to avoid list'}" style="cursor:pointer;font-size:13px;padding:2px 6px;${isAvoid?'color:#e74c3c;':'color:#ccc;'}">${isAvoid?'&#128683;':'&#8856;'}</span>`;
+    const homeBtn = g.type === 'Home'
+      ? `<span onclick="event.stopPropagation();setMyHomeGroup(${idx})" title="${isMyHome?'Unset home group':'Set as my home group'}" style="cursor:pointer;font-size:15px;padding:3px 5px;display:inline-block;${isMyHome?'color:#1a7f37;':'color:#ccc;'}">${isMyHome?'&#9733;':'&#9734;'}</span>` : '<span style="display:inline-block;width:25px;"></span>';
+    const favBtn = `<span onclick="event.stopPropagation();toggleFavorite(${idx})" title="${isFav?'Remove from favorites':'Add to favorites'}" style="cursor:pointer;font-size:15px;padding:3px 5px;display:inline-block;${isFav?'color:#e74c3c;':'color:#ccc;'}">${isFav?'&#10084;':'&#9825;'}</span>`;
+    const avoidBtn = `<span onclick="event.stopPropagation();toggleAvoid(${idx})" title="${isAvoid?'Remove from avoid list':'Add to avoid list'}" style="cursor:pointer;font-size:15px;padding:3px 5px;display:inline-block;${isAvoid?'color:#e74c3c;':'color:#ccc;'}">${isAvoid?'&#128683;':'&#8856;'}</span>`;
     const rowClass = `${selectedMeetings.has(idx)?'selected':''} ${hubReg?'hub-registered':''} ${isMyHome?'my-home-group':''} ${isAvoid?'avoided-group':''}`;
     const fmtBadge = g.format === 'Virtual' ? '<span class="badge virtual">Virtual</span>'
       : g.format === 'In-Person' ? '<span class="badge in-person">In-Person</span>'
@@ -1621,8 +1621,8 @@ renderTable = function() {
       : '<span style="color:#aaa;font-size:10px">—</span>';
     return `<tr onclick="focusGroup(${idx})" data-idx="${idx}" class="${rowClass}" style="${isAvoid?'opacity:0.5;':''}">
       <td class="cb-col" onclick="event.stopPropagation()"><input type="checkbox" ${checked} onchange="toggleSelection(${idx},this.checked)" /></td>
-      <td><strong>${g.name}</strong>${hubBadge}${homeBadge}${homeBtn}<br><span style="color:#636e72;font-size:11px">${g.leader}</span></td>
-      <td onclick="event.stopPropagation()" style="white-space:nowrap;text-align:center;">${favBtn}${avoidBtn}</td>
+      <td><strong>${g.name}</strong>${hubBadge}${homeBadge}<br><span style="color:#636e72;font-size:11px">${g.leader}</span></td>
+      <td onclick="event.stopPropagation()" style="white-space:nowrap;text-align:center;display:flex;gap:2px;align-items:center;justify-content:center;">${homeBtn}${favBtn}${avoidBtn}</td>
       <td><span class="badge ${g.type.toLowerCase()}">${g.type}</span></td>
       <td>${g.city}</td>
       <td style="white-space:nowrap">${g.day}</td>
