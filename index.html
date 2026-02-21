@@ -368,6 +368,12 @@
           <option value="Virtual">Virtual</option>
           <option value="In-Person & Virtual">Hybrid</option>
         </select>
+        <select id="filter-rating" onchange="applyFilters()">
+          <option value="">All Groups</option>
+          <option value="favorites">Favorites Only</option>
+          <option value="avoid">Avoid List</option>
+          <option value="hide-avoid">Hide Avoided</option>
+        </select>
         <select id="sort-by" onchange="applyFilters()">
           <option value="name">Sort: Name</option>
           <option value="distance">Sort: Distance</option>
@@ -792,6 +798,13 @@ let calYear, calMonth;
 let myHomeGroupIdx = parseInt(localStorage.getItem('provisors-home-group') ?? '-1');
 if (myHomeGroupIdx < 0) { myHomeGroupIdx = GROUPS.findIndex(g => g.name === 'Hollywood'); localStorage.setItem('provisors-home-group', myHomeGroupIdx); }
 function setMyHomeGroup(idx) { myHomeGroupIdx = idx; localStorage.setItem('provisors-home-group', idx); renderTable(); renderCalendar(); renderMyMeetings(); }
+// Favorites & Avoid lists
+const favoriteGroups = new Set(JSON.parse(localStorage.getItem('provisors-favorites') || '[]'));
+const avoidGroups = new Set(JSON.parse(localStorage.getItem('provisors-avoid') || '[]'));
+function saveFavorites() { localStorage.setItem('provisors-favorites', JSON.stringify([...favoriteGroups])); }
+function saveAvoid() { localStorage.setItem('provisors-avoid', JSON.stringify([...avoidGroups])); }
+function toggleFavorite(idx) { if (favoriteGroups.has(idx)) favoriteGroups.delete(idx); else { favoriteGroups.add(idx); avoidGroups.delete(idx); saveAvoid(); } saveFavorites(); renderTable(); renderMyMeetings(); }
+function toggleAvoid(idx) { if (avoidGroups.has(idx)) avoidGroups.delete(idx); else { avoidGroups.add(idx); favoriteGroups.delete(idx); saveFavorites(); selectedMeetings.delete(idx); } saveAvoid(); renderTable(); renderMyMeetings(); renderCalendar(); saveSelections(); }
 const now = new Date(); calYear = now.getFullYear(); calMonth = now.getMonth();
 
 // ── View Switching ──
@@ -831,6 +844,7 @@ async function geocodeAddress() {
     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}&limit=1`);
     const data = await res.json();
     if (!data.length) { alert('Address not found.'); return; }
+    localStorage.setItem('provisors-user-address', addr);
     setUserLocation(parseFloat(data[0].lat), parseFloat(data[0].lon), addr);
   } catch(e) { alert('Geocoding error: ' + e.message); }
 }
@@ -897,17 +911,21 @@ function applyFilters() {
   const type = document.getElementById('filter-type').value;
   const day = document.getElementById('filter-day').value;
   const format = document.getElementById('filter-format').value;
+  const rating = document.getElementById('filter-rating').value;
   const sortField = document.getElementById('sort-by').value;
 
   // If a calendar slot filter is active, use that instead of normal filters
   if (slotFilterIndices) {
     filtered = GROUPS.filter((g, idx) => slotFilterIndices.has(idx));
   } else {
-    filtered = GROUPS.filter(g => {
+    filtered = GROUPS.filter((g, idx) => {
       if (region && g.region !== region) return false;
       if (type && g.type !== type) return false;
       if (day && !g.day.includes(day)) return false;
       if (format && g.format !== format) return false;
+      if (rating === 'favorites' && !favoriteGroups.has(idx)) return false;
+      if (rating === 'avoid' && !avoidGroups.has(idx)) return false;
+      if (rating === 'hide-avoid' && avoidGroups.has(idx)) return false;
       if (search && !(g.name.toLowerCase().includes(search) || g.leader.toLowerCase().includes(search) || g.city.toLowerCase().includes(search) || g.region.toLowerCase().includes(search))) return false;
       return true;
     });
@@ -1233,7 +1251,7 @@ function clearSlotFilter() {
     slotFilterLabel = null;
   }
 }
-['search','filter-region','filter-type','filter-day','filter-format','sort-by'].forEach(id => {
+['search','filter-region','filter-type','filter-day','filter-format','filter-rating','sort-by'].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', clearSlotFilter);
 });
@@ -1585,14 +1603,18 @@ renderTable = function() {
     const homeBadge = isMyHome ? ' <span style="color:#1a7f37;font-size:10px;font-weight:700;">&#9733; MY HOME</span>' : '';
     const homeBtn = g.type === 'Home' && !isMyHome
       ? `<span onclick="event.stopPropagation();setMyHomeGroup(${idx})" title="Set as my home group" style="cursor:pointer;color:#aaa;font-size:10px;margin-left:4px;">&#9734;</span>` : '';
-    const rowClass = `${selectedMeetings.has(idx)?'selected':''} ${hubReg?'hub-registered':''} ${isMyHome?'my-home-group':''}`;
+    const isFav = favoriteGroups.has(idx);
+    const isAvoid = avoidGroups.has(idx);
+    const favBtn = `<span onclick="event.stopPropagation();toggleFavorite(${idx})" title="${isFav?'Remove from favorites':'Add to favorites'}" style="cursor:pointer;font-size:11px;margin-left:3px;${isFav?'color:#e74c3c;':'color:#ccc;'}">${isFav?'&#10084;':'&#9825;'}</span>`;
+    const avoidBtn = `<span onclick="event.stopPropagation();toggleAvoid(${idx})" title="${isAvoid?'Remove from avoid list':'Add to avoid list'}" style="cursor:pointer;font-size:11px;margin-left:2px;${isAvoid?'color:#e74c3c;':'color:#ccc;'}">${isAvoid?'&#128683;':'&#8856;'}</span>`;
+    const rowClass = `${selectedMeetings.has(idx)?'selected':''} ${hubReg?'hub-registered':''} ${isMyHome?'my-home-group':''} ${isAvoid?'avoided-group':''}`;
     const fmtBadge = g.format === 'Virtual' ? '<span class="badge virtual">Virtual</span>'
       : g.format === 'In-Person' ? '<span class="badge in-person">In-Person</span>'
       : g.format === 'In-Person & Virtual' ? '<span class="badge hybrid">Hybrid</span>'
       : '<span style="color:#aaa;font-size:10px">—</span>';
-    return `<tr onclick="focusGroup(${idx})" data-idx="${idx}" class="${rowClass}">
+    return `<tr onclick="focusGroup(${idx})" data-idx="${idx}" class="${rowClass}" style="${isAvoid?'opacity:0.5;':''}">
       <td class="cb-col" onclick="event.stopPropagation()"><input type="checkbox" ${checked} onchange="toggleSelection(${idx},this.checked)" /></td>
-      <td><strong>${g.name}</strong>${hubBadge}${homeBadge}${homeBtn}<br><span style="color:#636e72;font-size:11px">${g.leader}</span></td>
+      <td><strong>${g.name}</strong>${hubBadge}${homeBadge}${homeBtn}${favBtn}${avoidBtn}<br><span style="color:#636e72;font-size:11px">${g.leader}</span></td>
       <td><span class="badge ${g.type.toLowerCase()}">${g.type}</span></td>
       <td>${g.city}</td>
       <td style="white-space:nowrap">${g.day}</td>
@@ -1741,9 +1763,11 @@ renderMyMeetings = function() {
     const bookBtn = (!hubReg && autoBookEnabled && hubConnected)
       ? `<button onclick="event.stopPropagation(); bookMeeting(${idx})" style="background:#27ae60;color:white;border:none;border-radius:3px;padding:2px 6px;font-size:10px;font-weight:600;cursor:pointer;margin-right:4px;">Book</button>`
       : '';
+    const isFav = favoriteGroups.has(idx);
+    const favIcon = isFav ? ' <span style="color:#e74c3c;font-size:10px;">&#10084;</span>' : '';
     const fmtLabel = g.format === 'Virtual' ? ' <span style="color:#0077b6;font-size:10px;font-weight:600;">&#128187; Virtual</span>'
       : g.format === 'In-Person' ? ' <span style="color:#1a7f37;font-size:10px;font-weight:600;">&#128205; In-Person</span>' : '';
-    return `<div class="my-meeting-item" style="${isMyHome?'border-left:3px solid #1a7f37;':''}"><div class="my-meeting-info"><strong>${g.name}</strong>${hubBadge}${homeBadge}${typeLabel}${fmtLabel}
+    return `<div class="my-meeting-item" style="${isMyHome?'border-left:3px solid #1a7f37;':''}"><div class="my-meeting-info"><strong>${g.name}</strong>${hubBadge}${homeBadge}${favIcon}${typeLabel}${fmtLabel}
       <div class="meta">${g.day} &bull; ${g.time} &bull; ${g.city}${dist}</div></div>
       ${bookBtn}<button class="my-meeting-remove" onclick="removeSelection(${idx})" title="Remove">&times;</button></div>`;
   }).join('');
@@ -1788,6 +1812,12 @@ initHubRegistrations(); // load embedded Hub data first (sets formats + selectio
 loadSelections();       // then overlay any user localStorage selections
 loadHubData();          // then load any cached live-sync data (overrides embedded)
 applyFilters();
+
+// Default address — pre-fill and auto-calculate on first load
+const addrInput = document.getElementById('user-address');
+const savedAddr = localStorage.getItem('provisors-user-address');
+addrInput.value = savedAddr || '7951 Blackburn Ave, Los Angeles, CA';
+geocodeAddress();
 </script>
 </body>
 </html>
