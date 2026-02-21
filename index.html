@@ -82,6 +82,9 @@
     .badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
     .badge.home { background: #dfe6fd; color: #2952cc; }
     .badge.affinity { background: #fde8d0; color: #b35c00; }
+    .badge.virtual { background: #e8f4fd; color: #0077b6; font-size: 9px; padding: 1px 5px; }
+    .badge.in-person { background: #e8f7ed; color: #1a7f37; font-size: 9px; padding: 1px 5px; }
+    .badge.hybrid { background: #f3e8fd; color: #7b2cbf; font-size: 9px; padding: 1px 5px; }
     .distance-cell { font-weight: 600; color: #153D63; white-space: nowrap; }
     .table-wrap th.cb-col, .table-wrap td.cb-col { width: 28px; text-align: center; padding: 6px 2px; }
     .table-wrap td.cb-col { cursor: default; }
@@ -352,6 +355,11 @@
           <option value="Thursday">Thursday</option>
           <option value="Friday">Friday</option>
         </select>
+        <select id="filter-format" onchange="applyFilters()">
+          <option value="">All Formats</option>
+          <option value="In-Person">In-Person</option>
+          <option value="Virtual">Virtual</option>
+        </select>
         <select id="sort-by" onchange="applyFilters()">
           <option value="name">Sort: Name</option>
           <option value="distance">Sort: Distance</option>
@@ -370,6 +378,7 @@
             <th onclick="sortBy('city')">City</th>
             <th onclick="sortBy('day')">Day</th>
             <th onclick="sortBy('time')">Time</th>
+            <th onclick="sortBy('format')">Format</th>
             <th onclick="sortBy('distance')">Dist.</th>
           </tr>
         </thead>
@@ -611,6 +620,12 @@ GROUPS.forEach(g => {
   const coords = jitter(base, cityGroupIndex[g.city], cityGroupCount[g.city]);
   g.lat = coords[0]; g.lng = coords[1]; g.distance = null;
   cityGroupIndex[g.city]++;
+  // Default format: infer from city name, otherwise TBD (Hub sync will override)
+  if (g.city.toLowerCase().includes('zoom') || g.city === 'LAV') {
+    g.format = 'Virtual';
+  } else {
+    g.format = ''; // unknown until Hub syncs
+  }
 });
 
 // ── State ──
@@ -719,6 +734,7 @@ function applyFilters() {
   const region = document.getElementById('filter-region').value;
   const type = document.getElementById('filter-type').value;
   const day = document.getElementById('filter-day').value;
+  const format = document.getElementById('filter-format').value;
   const sortField = document.getElementById('sort-by').value;
 
   // If a calendar slot filter is active, use that instead of normal filters
@@ -729,6 +745,7 @@ function applyFilters() {
       if (region && g.region !== region) return false;
       if (type && g.type !== type) return false;
       if (day && !g.day.includes(day)) return false;
+      if (format && g.format !== format) return false;
       if (search && !(g.name.toLowerCase().includes(search) || g.leader.toLowerCase().includes(search) || g.city.toLowerCase().includes(search) || g.region.toLowerCase().includes(search))) return false;
       return true;
     });
@@ -741,6 +758,7 @@ function applyFilters() {
       case 'day': return daySort(a.day) - daySort(b.day);
       case 'type': return a.type.localeCompare(b.type);
       case 'time': return a.time.localeCompare(b.time);
+      case 'format': return (a.format||'zzz').localeCompare(b.format||'zzz');
       default: return a.name.localeCompare(b.name);
     }
   });
@@ -754,6 +772,9 @@ function renderTable() {
   tbody.innerHTML = filtered.map(g => {
     const idx = GROUPS.indexOf(g);
     const checked = selectedMeetings.has(idx) ? 'checked' : '';
+    const fmtBadge = g.format === 'Virtual' ? '<span class="badge virtual">Virtual</span>'
+      : g.format === 'In-Person' ? '<span class="badge in-person">In-Person</span>'
+      : '<span style="color:#aaa;font-size:10px">—</span>';
     return `<tr onclick="focusGroup(${idx})" data-idx="${idx}" class="${selectedMeetings.has(idx)?'selected':''}">
       <td class="cb-col" onclick="event.stopPropagation()"><input type="checkbox" ${checked} onchange="toggleSelection(${idx},this.checked)" /></td>
       <td><strong>${g.name}</strong><br><span style="color:#636e72;font-size:11px">${g.leader}</span></td>
@@ -761,6 +782,7 @@ function renderTable() {
       <td>${g.city}</td>
       <td style="white-space:nowrap">${g.day}</td>
       <td style="white-space:nowrap">${g.time}</td>
+      <td>${fmtBadge}</td>
       <td class="distance-cell">${g.distance!==null?g.distance.toFixed(1)+' mi':'—'}</td></tr>`;
   }).join('');
   const footerText = slotFilterLabel
@@ -777,7 +799,9 @@ function renderMarkers() {
     const distHtml = g.distance !== null ? `<div class="popup-distance">${g.distance.toFixed(1)} miles from you</div>` : '';
     const isSel = selectedMeetings.has(idx);
     const btnStyle = isSel ? 'background:#e8f0e8;color:#27ae60;border:1px solid #27ae60;' : 'background:#153D63;color:white;border:none;';
-    m.bindPopup(`<strong>${g.name}</strong><br><span style="color:#636e72">${g.type} Group &bull; ${g.region}</span><br>
+    const fmtTag = g.format === 'Virtual' ? ' <span style="color:#0077b6;font-weight:600;font-size:11px;">&#128187; Virtual</span>'
+      : g.format === 'In-Person' ? ' <span style="color:#1a7f37;font-weight:600;font-size:11px;">&#128205; In-Person</span>' : '';
+    m.bindPopup(`<strong>${g.name}</strong>${fmtTag}<br><span style="color:#636e72">${g.type} Group &bull; ${g.region}</span><br>
       Leader: ${g.leader}<br>${g.day} &bull; ${g.time}<br>${g.city}${distHtml}
       <div style="margin-top:8px"><button onclick="toggleSelectionFromPopup(${idx})" style="${btnStyle}padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;">${isSel?'In My Meetings':'Add to My Meetings'}</button></div>`);
     markers.push(m);
@@ -962,9 +986,12 @@ function renderCalendar() {
 // ── Tooltip ──
 const tooltip = document.getElementById('slot-tooltip');
 function showTooltip(e, idx, isBooked) {
+  if (idx < 0) return;
   const g = GROUPS[idx];
   const dist = g.distance !== null ? `<br>${g.distance.toFixed(1)} mi away` : '';
-  tooltip.innerHTML = `<h4>${g.name}</h4>${g.type} Group &bull; ${g.region}<br>
+  const fmtTag = g.format === 'Virtual' ? '<span style="color:#0077b6;font-weight:600;"> &#128187; Virtual</span>'
+    : g.format === 'In-Person' ? '<span style="color:#1a7f37;font-weight:600;"> &#128205; In-Person</span>' : '';
+  tooltip.innerHTML = `<h4>${g.name}${fmtTag}</h4>${g.type} Group &bull; ${g.region}<br>
     Leader: ${g.leader}<br>${g.day} &bull; ${g.time}<br>${g.city}${dist}`;
   positionTooltip(e);
   tooltip.classList.add('show');
@@ -1022,6 +1049,7 @@ function filterForSlot(isoDate, slot) {
   document.getElementById('filter-region').value = '';
   document.getElementById('filter-type').value = '';
   document.getElementById('filter-day').value = '';
+  document.getElementById('filter-format').value = '';
 
   // Build a label for the footer
   const slotName = slot === 'morning' ? 'Morning' : slot === 'lunch' ? 'Lunch' : 'Evening';
@@ -1040,7 +1068,7 @@ function clearSlotFilter() {
     slotFilterLabel = null;
   }
 }
-['search','filter-region','filter-type','filter-day','sort-by'].forEach(id => {
+['search','filter-region','filter-type','filter-day','filter-format','sort-by'].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', clearSlotFilter);
 });
@@ -1250,18 +1278,38 @@ async function hubSync() {
       return true;
     });
 
-    // Auto-select matched groups
+    // Auto-select matched groups and overlay format data
     let matched = 0;
     hubRegistrations.forEach(reg => {
       const idx = matchHubToGroup(reg.eventName);
       if (idx >= 0) {
         reg.matchedGroupIdx = idx;
+        // Overlay format (Virtual/In-Person) from Hub data
+        if (reg.location === 'Virtual' || reg.location === 'In-Person') {
+          GROUPS[idx].format = reg.location;
+        }
         if (!selectedMeetings.has(idx)) {
           selectedMeetings.add(idx);
           matched++;
         }
       }
     });
+
+    // Also overlay format from upcoming events
+    const upcomingCards = hubSyncData.upcoming_events?.events || [];
+    upcomingCards.forEach(card => {
+      const parsed = parseHubEvent(card);
+      if (!parsed) return;
+      const idx = matchHubToGroup(parsed.eventName);
+      if (idx >= 0 && (parsed.location === 'Virtual' || parsed.location === 'In-Person')) {
+        GROUPS[idx].format = parsed.location;
+      }
+    });
+
+    // Save format data to localStorage for offline use
+    const formatMap = {};
+    GROUPS.forEach((g, i) => { if (g.format) formatMap[i] = g.format; });
+    localStorage.setItem('provisors-formats', JSON.stringify(formatMap));
 
     const ts = hubSyncData.timestamp ? new Date(hubSyncData.timestamp).toLocaleTimeString() : 'now';
     updateHubUI('connected', `Hub: Synced at ${ts}`);
@@ -1321,14 +1369,26 @@ function getHubRegForDate(dateStr, slot) {
 // Load cached hub data on startup
 function loadHubData() {
   try {
+    // Load cached format data (Virtual/In-Person) from previous Hub syncs
+    const fmtMap = JSON.parse(localStorage.getItem('provisors-formats') || '{}');
+    Object.entries(fmtMap).forEach(([idx, fmt]) => {
+      if (GROUPS[idx]) GROUPS[idx].format = fmt;
+    });
+
     const cached = JSON.parse(localStorage.getItem('provisors-hub-data') || 'null');
     if (cached && cached.registrations) {
       hubRegistrations = cached.registrations;
       // Re-match groups
       hubRegistrations.forEach(reg => {
         reg.matchedGroupIdx = matchHubToGroup(reg.eventName);
-        if (reg.matchedGroupIdx >= 0 && !selectedMeetings.has(reg.matchedGroupIdx)) {
-          selectedMeetings.add(reg.matchedGroupIdx);
+        if (reg.matchedGroupIdx >= 0) {
+          if (!selectedMeetings.has(reg.matchedGroupIdx)) {
+            selectedMeetings.add(reg.matchedGroupIdx);
+          }
+          // Also restore format from registration data
+          if (reg.location === 'Virtual' || reg.location === 'In-Person') {
+            GROUPS[reg.matchedGroupIdx].format = reg.location;
+          }
         }
       });
       const ts = cached.timestamp ? new Date(cached.timestamp).toLocaleTimeString() : '';
@@ -1351,6 +1411,9 @@ renderTable = function() {
     const hubReg = isHubRegistered(idx);
     const hubBadge = hubReg ? '<span class="hub-reg-badge">HUB</span>' : '';
     const rowClass = `${selectedMeetings.has(idx)?'selected':''} ${hubReg?'hub-registered':''}`;
+    const fmtBadge = g.format === 'Virtual' ? '<span class="badge virtual">Virtual</span>'
+      : g.format === 'In-Person' ? '<span class="badge in-person">In-Person</span>'
+      : '<span style="color:#aaa;font-size:10px">—</span>';
     return `<tr onclick="focusGroup(${idx})" data-idx="${idx}" class="${rowClass}">
       <td class="cb-col" onclick="event.stopPropagation()"><input type="checkbox" ${checked} onchange="toggleSelection(${idx},this.checked)" /></td>
       <td><strong>${g.name}</strong>${hubBadge}<br><span style="color:#636e72;font-size:11px">${g.leader}</span></td>
@@ -1358,6 +1421,7 @@ renderTable = function() {
       <td>${g.city}</td>
       <td style="white-space:nowrap">${g.day}</td>
       <td style="white-space:nowrap">${g.time}</td>
+      <td>${fmtBadge}</td>
       <td class="distance-cell">${g.distance!==null?g.distance.toFixed(1)+' mi':'—'}</td></tr>`;
   }).join('');
   const footerText = slotFilterLabel
@@ -1492,7 +1556,9 @@ renderMyMeetings = function() {
     const bookBtn = (!hubReg && autoBookEnabled && hubConnected)
       ? `<button onclick="event.stopPropagation(); bookMeeting(${idx})" style="background:#27ae60;color:white;border:none;border-radius:3px;padding:2px 6px;font-size:10px;font-weight:600;cursor:pointer;margin-right:4px;">Book</button>`
       : '';
-    return `<div class="my-meeting-item"><div class="my-meeting-info"><strong>${g.name}</strong>${hubBadge}
+    const fmtLabel = g.format === 'Virtual' ? ' <span style="color:#0077b6;font-size:10px;font-weight:600;">&#128187; Virtual</span>'
+      : g.format === 'In-Person' ? ' <span style="color:#1a7f37;font-size:10px;font-weight:600;">&#128205; In-Person</span>' : '';
+    return `<div class="my-meeting-item"><div class="my-meeting-info"><strong>${g.name}</strong>${hubBadge}${fmtLabel}
       <div class="meta">${g.day} &bull; ${g.time} &bull; ${g.city}${dist}</div></div>
       ${bookBtn}<button class="my-meeting-remove" onclick="removeSelection(${idx})" title="Remove">&times;</button></div>`;
   }).join('');
