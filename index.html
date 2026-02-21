@@ -194,6 +194,8 @@
     /* Slot states */
     .cal-slot.open { background: #f0f7f0; border: 1px dashed #b8dab8; color: #7fba7f; }
     .cal-slot.open:hover { background: #e0f0e0; border-color: #7fba7f; }
+    .cal-slot.booked-home-group { background: #1a7f37; color: white; border: 1px solid #1a7f37; cursor: default; }
+    .cal-slot.booked-home-group .slot-name { font-weight: 700; }
     .cal-slot.booked { background: #153D63; color: white; border: 1px solid #153D63; cursor: default; }
     .cal-slot.booked .slot-name { font-weight: 600; }
     .cal-slot.booked-affinity { background: #C5A355; color: white; border: 1px solid #C5A355; cursor: default; }
@@ -434,8 +436,9 @@
             </div>
             <div class="cal-legend">
               <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#27ae60"></div> Hub Registered</div>
-              <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#153D63"></div> My Home</div>
-              <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#C5A355"></div> My Affinity</div>
+              <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#1a7f37"></div> My Home Group</div>
+              <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#153D63"></div> Visiting Home</div>
+              <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#C5A355"></div> Affinity Group</div>
               <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fff8e6;border:1px solid #f0d78c"></div> Available</div>
               <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#f0f7f0;border:1px dashed #b8dab8"></div> Open Slot</div>
             </div>
@@ -785,6 +788,10 @@ GROUPS.forEach(g => {
 let userLat = null, userLng = null, userMarker = null, markers = [], filtered = [...GROUPS];
 const selectedMeetings = new Set();
 let calYear, calMonth;
+// My Home Group — stored as group index, default to Hollywood
+let myHomeGroupIdx = parseInt(localStorage.getItem('provisors-home-group') ?? '-1');
+if (myHomeGroupIdx < 0) { myHomeGroupIdx = GROUPS.findIndex(g => g.name === 'Hollywood'); localStorage.setItem('provisors-home-group', myHomeGroupIdx); }
+function setMyHomeGroup(idx) { myHomeGroupIdx = idx; localStorage.setItem('provisors-home-group', idx); renderTable(); renderCalendar(); renderMyMeetings(); }
 const now = new Date(); calYear = now.getFullYear(); calMonth = now.getMonth();
 
 // ── View Switching ──
@@ -873,9 +880,11 @@ function parseDayPattern(dayStr) {
 
 // Get time slot: 'morning', 'lunch', 'evening'
 function getTimeSlot(timeStr) {
-  const h = parseInt(timeStr);
-  const isPm = timeStr.toLowerCase().includes('pm') && !timeStr.startsWith('12');
-  const hour = isPm ? h + 12 : (timeStr.startsWith('12') && timeStr.toLowerCase().includes('pm')) ? 12 : h;
+  // Only look at the START time (before the dash/separator)
+  const startTime = timeStr.split(/[–—-]/)[0].trim().toLowerCase();
+  const h = parseInt(startTime);
+  const isPm = startTime.includes('pm') && h !== 12;
+  const hour = isPm ? h + 12 : (h === 12 && startTime.includes('pm')) ? 12 : h;
   if (hour < 11) return 'morning';
   if (hour < 17) return 'lunch';
   return 'evening';
@@ -1105,7 +1114,7 @@ function renderCalendar() {
 
       if (booked.length > 0) {
         booked.forEach(m => {
-          const cls = m.group.type === 'Affinity' ? 'booked-affinity' : 'booked';
+          const cls = m.idx === myHomeGroupIdx ? 'booked-home-group' : m.group.type === 'Affinity' ? 'booked-affinity' : 'booked';
           html += `<div class="cal-slot ${cls}" onmouseenter="showTooltip(event,${m.idx},true)" onmouseleave="hideTooltip()">
             <span class="slot-label">${slotLabel}</span><span class="slot-name">${m.group.name}</span></div>`;
         });
@@ -1572,14 +1581,18 @@ renderTable = function() {
     const checked = selectedMeetings.has(idx) ? 'checked' : '';
     const hubReg = isHubRegistered(idx);
     const hubBadge = hubReg ? '<span class="hub-reg-badge">HUB</span>' : '';
-    const rowClass = `${selectedMeetings.has(idx)?'selected':''} ${hubReg?'hub-registered':''}`;
+    const isMyHome = idx === myHomeGroupIdx;
+    const homeBadge = isMyHome ? ' <span style="color:#1a7f37;font-size:10px;font-weight:700;">&#9733; MY HOME</span>' : '';
+    const homeBtn = g.type === 'Home' && !isMyHome
+      ? `<span onclick="event.stopPropagation();setMyHomeGroup(${idx})" title="Set as my home group" style="cursor:pointer;color:#aaa;font-size:10px;margin-left:4px;">&#9734;</span>` : '';
+    const rowClass = `${selectedMeetings.has(idx)?'selected':''} ${hubReg?'hub-registered':''} ${isMyHome?'my-home-group':''}`;
     const fmtBadge = g.format === 'Virtual' ? '<span class="badge virtual">Virtual</span>'
       : g.format === 'In-Person' ? '<span class="badge in-person">In-Person</span>'
       : g.format === 'In-Person & Virtual' ? '<span class="badge hybrid">Hybrid</span>'
       : '<span style="color:#aaa;font-size:10px">—</span>';
     return `<tr onclick="focusGroup(${idx})" data-idx="${idx}" class="${rowClass}">
       <td class="cb-col" onclick="event.stopPropagation()"><input type="checkbox" ${checked} onchange="toggleSelection(${idx},this.checked)" /></td>
-      <td><strong>${g.name}</strong>${hubBadge}<br><span style="color:#636e72;font-size:11px">${g.leader}</span></td>
+      <td><strong>${g.name}</strong>${hubBadge}${homeBadge}${homeBtn}<br><span style="color:#636e72;font-size:11px">${g.leader}</span></td>
       <td><span class="badge ${g.type.toLowerCase()}">${g.type}</span></td>
       <td>${g.city}</td>
       <td style="white-space:nowrap">${g.day}</td>
@@ -1677,7 +1690,7 @@ renderCalendar = function() {
       // User-selected booked meetings
       if (booked.length > 0) {
         booked.forEach(m => {
-          const cls = m.group.type === 'Affinity' ? 'booked-affinity' : 'booked';
+          const cls = m.idx === myHomeGroupIdx ? 'booked-home-group' : m.group.type === 'Affinity' ? 'booked-affinity' : 'booked';
           html += `<div class="cal-slot ${cls}" onmouseenter="showTooltip(event,${m.idx},true)" onmouseleave="hideTooltip()">
             <span class="slot-label">${slotLabel}</span><span class="slot-name">${m.group.name}</span></div>`;
         });
@@ -1722,12 +1735,15 @@ renderMyMeetings = function() {
     const g = GROUPS[idx]; const dist = g.distance !== null ? ` &bull; ${g.distance.toFixed(1)} mi` : '';
     const hubReg = isHubRegistered(idx);
     const hubBadge = hubReg ? ' <span class="hub-reg-badge">HUB</span>' : '';
+    const isMyHome = idx === myHomeGroupIdx;
+    const homeBadge = isMyHome ? ' <span style="color:#1a7f37;font-size:10px;font-weight:700;">&#9733; MY HOME</span>' : '';
+    const typeLabel = isMyHome ? '' : g.type === 'Affinity' ? ' <span style="color:#C5A355;font-size:10px;font-weight:600;">Affinity</span>' : ' <span style="color:#153D63;font-size:10px;font-weight:600;">Visiting</span>';
     const bookBtn = (!hubReg && autoBookEnabled && hubConnected)
       ? `<button onclick="event.stopPropagation(); bookMeeting(${idx})" style="background:#27ae60;color:white;border:none;border-radius:3px;padding:2px 6px;font-size:10px;font-weight:600;cursor:pointer;margin-right:4px;">Book</button>`
       : '';
     const fmtLabel = g.format === 'Virtual' ? ' <span style="color:#0077b6;font-size:10px;font-weight:600;">&#128187; Virtual</span>'
       : g.format === 'In-Person' ? ' <span style="color:#1a7f37;font-size:10px;font-weight:600;">&#128205; In-Person</span>' : '';
-    return `<div class="my-meeting-item"><div class="my-meeting-info"><strong>${g.name}</strong>${hubBadge}${fmtLabel}
+    return `<div class="my-meeting-item" style="${isMyHome?'border-left:3px solid #1a7f37;':''}"><div class="my-meeting-info"><strong>${g.name}</strong>${hubBadge}${homeBadge}${typeLabel}${fmtLabel}
       <div class="meta">${g.day} &bull; ${g.time} &bull; ${g.city}${dist}</div></div>
       ${bookBtn}<button class="my-meeting-remove" onclick="removeSelection(${idx})" title="Remove">&times;</button></div>`;
   }).join('');
