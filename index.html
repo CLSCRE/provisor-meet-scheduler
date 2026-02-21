@@ -467,6 +467,48 @@ const CITY_COORDS = {
   "Century City":[34.0565,-118.4173]
 };
 
+// Neighborhood-level overrides: map group names to more precise locations
+// so groups with city "Los Angeles" aren't all piled on downtown
+const NEIGHBORHOOD_COORDS = {
+  // Century City groups
+  "Century City 1":[34.0580,-118.4155],"Century City 2":[34.0570,-118.4165],"Century City 3":[34.0575,-118.4180],
+  "Century City 4":[34.0560,-118.4170],"Century City 5":[34.0565,-118.4145],"Century City 6":[34.0555,-118.4160],
+  "Century City 7":[34.0585,-118.4175],
+  // Beverly Hills (that are listed under LA)
+  "Beverly Hills 1":[34.0710,-118.3970],"Beverly Hills 5":[34.0750,-118.4030],
+  // Downtown LA
+  "Downtown LA-1":[34.0530,-118.2450],"Downtown LA-2":[34.0510,-118.2420],"Downtown LA-3":[34.0540,-118.2400],
+  "Downtown LA-4":[34.0520,-118.2470],"Downtown LA-5":[34.0500,-118.2460],
+  // Brentwood
+  "Brentwood":[34.0594,-118.4728],
+  // Westwood
+  "Westwood":[34.0635,-118.4455],"Westwood Village":[34.0610,-118.4470],
+  // West LA
+  "West Los Angeles":[34.0380,-118.4320],"West Los Angeles 2":[34.0395,-118.4340],
+  // Westside (general West LA area)
+  "Westside":[34.0420,-118.4450],"Westside 2":[34.0440,-118.4430],"Westside 3":[34.0400,-118.4470],
+  // Mid City
+  "Mid City":[34.0480,-118.3500],
+  // Rancho Park
+  "Rancho Park":[34.0370,-118.4140],
+  // Entertainment (near West Hollywood / Sunset area)
+  "Entertainment 1":[34.0870,-118.3640],"Entertainment 2":[34.0890,-118.3620],
+  // Westside affinity groups — spread across Century City / West LA
+  "Capital Markets":[34.0555,-118.4190],"Branding, Licensing, and IP":[34.0545,-118.4200],
+  "Family Business":[34.0575,-118.4195],"Growth Affinity Group":[34.0590,-118.4140],
+  "Healthcare Advisors":[34.0550,-118.4150],"Innovation":[34.0540,-118.4180],
+  "LA Lawyers and Legal Professionals":[34.0560,-118.4210],"Middle Market":[34.0535,-118.4160],
+  "M&A Capital Formation":[34.0570,-118.4130],"Non-Profit":[34.0585,-118.4185],
+  "Real Estate – Greater Los Angeles":[34.0545,-118.4170],"Tax Masters":[34.0555,-118.4200],
+  "Transactions & Transitions":[34.0565,-118.4190],"Women's (Westside)":[34.0580,-118.4210],
+  // Core affinity groups — spread near downtown/mid-city
+  "Distributors & Manufacturers":[34.0530,-118.2500],
+  "LA Estate and Succession Planning":[34.0550,-118.2520],
+  "LGBT+ Allies":[34.0560,-118.3000],
+  "Seniors and Special Needs":[34.0490,-118.3100],
+  "Women's (Core)":[34.0510,-118.2800],
+};
+
 function jitter(coords, index, total) {
   const spread = 0.006, angle = (index / total) * 2 * Math.PI, r = spread * Math.sqrt(index / total);
   return [coords[0] + r * Math.cos(angle), coords[1] + r * Math.sin(angle)];
@@ -613,14 +655,22 @@ const GROUPS = [
 
 // ── Assign coordinates with jitter ──
 const cityGroupCount = {}, cityGroupIndex = {};
-GROUPS.forEach(g => { cityGroupCount[g.city] = (cityGroupCount[g.city] || 0) + 1; });
+// Count groups per location key (neighborhood or city) for jitter
+const locationKey = g => NEIGHBORHOOD_COORDS[g.name] ? g.name : g.city;
+const locGroupCount = {}, locGroupIndex = {};
+GROUPS.forEach(g => { const k = locationKey(g); locGroupCount[k] = (locGroupCount[k] || 0) + 1; });
 GROUPS.forEach(g => {
-  cityGroupIndex[g.city] = (cityGroupIndex[g.city] || 0);
-  const base = CITY_COORDS[g.city] || CITY_COORDS["Los Angeles"];
-  const coords = jitter(base, cityGroupIndex[g.city], cityGroupCount[g.city]);
+  const k = locationKey(g);
+  locGroupIndex[k] = (locGroupIndex[k] || 0);
+  // Use neighborhood coords if available, otherwise city coords
+  const base = NEIGHBORHOOD_COORDS[g.name] || CITY_COORDS[g.city] || CITY_COORDS["Los Angeles"];
+  // Only jitter if multiple groups share the exact same base coords
+  const coords = locGroupCount[k] > 1
+    ? jitter(base, locGroupIndex[k], locGroupCount[k])
+    : base;
   g.lat = coords[0]; g.lng = coords[1]; g.distance = null;
-  cityGroupIndex[g.city]++;
-  // Default format: infer from city name, otherwise TBD (Hub sync will override)
+  locGroupIndex[k]++;
+  // Default format: infer from city name, otherwise unknown (Hub sync will override)
   if (g.city.toLowerCase().includes('zoom') || g.city === 'LAV') {
     g.format = 'Virtual';
   } else {
