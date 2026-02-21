@@ -388,6 +388,7 @@
           <tr>
             <th class="cb-col" onclick="event.stopPropagation()"></th>
             <th onclick="sortBy('name')">Group</th>
+            <th style="text-align:center;">Rate</th>
             <th onclick="sortBy('type')">Type</th>
             <th onclick="sortBy('city')">City</th>
             <th onclick="sortBy('day')">Day</th>
@@ -956,9 +957,15 @@ function renderTable() {
       : g.format === 'In-Person' ? '<span class="badge in-person">In-Person</span>'
       : g.format === 'In-Person & Virtual' ? '<span class="badge hybrid">Hybrid</span>'
       : '<span style="color:#aaa;font-size:10px">—</span>';
-    return `<tr onclick="focusGroup(${idx})" data-idx="${idx}" class="${selectedMeetings.has(idx)?'selected':''}">
+    const isFav = favoriteGroups.has(idx);
+    const isAvoid = avoidGroups.has(idx);
+    return `<tr onclick="focusGroup(${idx})" data-idx="${idx}" class="${selectedMeetings.has(idx)?'selected':''}" style="${isAvoid?'opacity:0.5;':''}">
       <td class="cb-col" onclick="event.stopPropagation()"><input type="checkbox" ${checked} onchange="toggleSelection(${idx},this.checked)" /></td>
       <td><strong>${g.name}</strong><br><span style="color:#636e72;font-size:11px">${g.leader}</span></td>
+      <td onclick="event.stopPropagation()" style="white-space:nowrap;text-align:center;">
+        <span onclick="toggleFavorite(${idx})" title="${isFav?'Remove from favorites':'Add to favorites'}" style="cursor:pointer;font-size:13px;padding:2px 6px;${isFav?'color:#e74c3c;':'color:#ccc;'}">${isFav?'&#10084;':'&#9825;'}</span>
+        <span onclick="toggleAvoid(${idx})" title="${isAvoid?'Remove from avoid list':'Add to avoid list'}" style="cursor:pointer;font-size:13px;padding:2px 6px;${isAvoid?'color:#e74c3c;':'color:#ccc;'}">${isAvoid?'&#128683;':'&#8856;'}</span>
+      </td>
       <td><span class="badge ${g.type.toLowerCase()}">${g.type}</span></td>
       <td>${g.city}</td>
       <td style="white-space:nowrap">${g.day}</td>
@@ -1605,8 +1612,8 @@ renderTable = function() {
       ? `<span onclick="event.stopPropagation();setMyHomeGroup(${idx})" title="Set as my home group" style="cursor:pointer;color:#aaa;font-size:10px;margin-left:4px;">&#9734;</span>` : '';
     const isFav = favoriteGroups.has(idx);
     const isAvoid = avoidGroups.has(idx);
-    const favBtn = `<span onclick="event.stopPropagation();toggleFavorite(${idx})" title="${isFav?'Remove from favorites':'Add to favorites'}" style="cursor:pointer;font-size:11px;margin-left:3px;${isFav?'color:#e74c3c;':'color:#ccc;'}">${isFav?'&#10084;':'&#9825;'}</span>`;
-    const avoidBtn = `<span onclick="event.stopPropagation();toggleAvoid(${idx})" title="${isAvoid?'Remove from avoid list':'Add to avoid list'}" style="cursor:pointer;font-size:11px;margin-left:2px;${isAvoid?'color:#e74c3c;':'color:#ccc;'}">${isAvoid?'&#128683;':'&#8856;'}</span>`;
+    const favBtn = `<span onclick="event.stopPropagation();event.preventDefault();toggleFavorite(${idx})" title="${isFav?'Remove from favorites':'Add to favorites'}" style="cursor:pointer;font-size:13px;padding:2px 6px;${isFav?'color:#e74c3c;':'color:#ccc;'}">${isFav?'&#10084;':'&#9825;'}</span>`;
+    const avoidBtn = `<span onclick="event.stopPropagation();event.preventDefault();toggleAvoid(${idx})" title="${isAvoid?'Remove from avoid list':'Add to avoid list'}" style="cursor:pointer;font-size:13px;padding:2px 6px;${isAvoid?'color:#e74c3c;':'color:#ccc;'}">${isAvoid?'&#128683;':'&#8856;'}</span>`;
     const rowClass = `${selectedMeetings.has(idx)?'selected':''} ${hubReg?'hub-registered':''} ${isMyHome?'my-home-group':''} ${isAvoid?'avoided-group':''}`;
     const fmtBadge = g.format === 'Virtual' ? '<span class="badge virtual">Virtual</span>'
       : g.format === 'In-Person' ? '<span class="badge in-person">In-Person</span>'
@@ -1614,7 +1621,8 @@ renderTable = function() {
       : '<span style="color:#aaa;font-size:10px">—</span>';
     return `<tr onclick="focusGroup(${idx})" data-idx="${idx}" class="${rowClass}" style="${isAvoid?'opacity:0.5;':''}">
       <td class="cb-col" onclick="event.stopPropagation()"><input type="checkbox" ${checked} onchange="toggleSelection(${idx},this.checked)" /></td>
-      <td><strong>${g.name}</strong>${hubBadge}${homeBadge}${homeBtn}${favBtn}${avoidBtn}<br><span style="color:#636e72;font-size:11px">${g.leader}</span></td>
+      <td><strong>${g.name}</strong>${hubBadge}${homeBadge}${homeBtn}<br><span style="color:#636e72;font-size:11px">${g.leader}</span></td>
+      <td onclick="event.stopPropagation()" style="white-space:nowrap;text-align:center;">${favBtn}${avoidBtn}</td>
       <td><span class="badge ${g.type.toLowerCase()}">${g.type}</span></td>
       <td>${g.city}</td>
       <td style="white-space:nowrap">${g.day}</td>
