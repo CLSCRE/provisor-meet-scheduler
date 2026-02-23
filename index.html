@@ -278,6 +278,92 @@
     .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 10000; }
     .overlay.show { display: block; }
 
+    /* Notes Modal */
+    .notes-modal {
+      display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      background: white; padding: 0; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      z-index: 10001; width: 440px; max-height: 80vh; overflow: hidden; flex-direction: column;
+    }
+    .notes-modal.show { display: flex; }
+    .notes-modal-header {
+      padding: 16px 20px; background: #153D63; color: white; border-radius: 12px 12px 0 0;
+    }
+    .notes-modal-header h3 { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+    .notes-modal-header .notes-meta { font-size: 11px; opacity: 0.8; }
+    .notes-modal-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+    .notes-modal-body textarea {
+      width: 100%; height: 80px; padding: 10px; border: 1px solid #ddd; border-radius: 6px;
+      font-size: 13px; font-family: inherit; resize: vertical; outline: none;
+    }
+    .notes-modal-body textarea:focus { border-color: #153D63; }
+    .notes-rating { display: flex; gap: 4px; align-items: center; margin: 10px 0; }
+    .notes-rating label { font-size: 12px; color: #636e72; margin-right: 6px; }
+    .notes-rating .star {
+      font-size: 20px; cursor: pointer; color: #ddd; transition: color 0.15s; line-height: 1;
+    }
+    .notes-rating .star.active { color: #C5A355; }
+    .notes-rating .star:hover { color: #C5A355; }
+    .notes-prev { margin-top: 14px; border-top: 1px solid #eee; padding-top: 10px; max-height: 200px; overflow-y: auto; }
+    .notes-prev h4 { font-size: 12px; color: #636e72; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .note-entry { padding: 8px 0; border-bottom: 1px solid #f5f5f5; font-size: 12px; }
+    .note-entry:last-child { border-bottom: none; }
+    .note-entry .note-date { color: #999; font-size: 11px; }
+    .note-entry .note-stars { color: #C5A355; font-size: 12px; }
+    .note-entry .note-text { color: #2d3436; margin-top: 2px; white-space: pre-wrap; }
+    .note-entry .note-delete { float: right; color: #ccc; cursor: pointer; font-size: 14px; }
+    .note-entry .note-delete:hover { color: #e74c3c; }
+    .notes-modal-footer {
+      padding: 12px 20px; border-top: 1px solid #eee; display: flex; gap: 8px; justify-content: flex-end;
+    }
+    .notes-modal-footer button {
+      padding: 8px 18px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .note-indicator { color: #C5A355; font-size: 10px; margin-left: 4px; vertical-align: middle; }
+
+    /* Contacts Tab */
+    .contacts-container { height: 100%; display: flex; flex-direction: column; background: white; overflow: hidden; }
+    .contacts-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 20px; background: #fafafa; border-bottom: 1px solid #eee; flex-shrink: 0;
+    }
+    .contacts-header h2 { font-size: 18px; font-weight: 700; color: #153D63; }
+    .contacts-actions { display: flex; gap: 8px; align-items: center; }
+    .contacts-actions button {
+      padding: 6px 14px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s;
+    }
+    .contacts-search { padding: 8px 16px; border-bottom: 1px solid #eee; display: flex; gap: 8px; flex-wrap: wrap; }
+    .contacts-search input, .contacts-search select {
+      padding: 6px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; outline: none;
+    }
+    .contacts-search input { flex: 1; min-width: 150px; }
+    .contacts-search select { min-width: 120px; }
+    .contacts-body { flex: 1; overflow-y: auto; padding: 0; }
+    .contacts-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .contacts-table thead { position: sticky; top: 0; z-index: 2; }
+    .contacts-table th {
+      background: #153D63; color: white; padding: 7px 10px; text-align: left;
+      font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .contacts-table td { padding: 6px 10px; border-bottom: 1px solid #f0f0f0; }
+    .contacts-table tr:hover { background: #f8f9ff; }
+    .contacts-table .contact-name { font-weight: 600; color: #153D63; }
+    .contacts-table .contact-notes { color: #636e72; font-size: 11px; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .contact-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+    .contact-chip {
+      display: inline-block; padding: 1px 6px; border-radius: 10px; font-size: 9px;
+      font-weight: 600; background: #e8f0fe; color: #153D63;
+    }
+    .contacts-empty { text-align: center; padding: 40px 20px; color: #999; }
+    .contacts-empty p { margin-bottom: 12px; }
+    .add-contact-row { display: flex; gap: 6px; padding: 8px 16px; border-top: 1px solid #eee; background: #fafafa; flex-wrap: wrap; }
+    .add-contact-row input {
+      padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; outline: none; flex: 1; min-width: 80px;
+    }
+    .add-contact-row button {
+      padding: 6px 12px; background: #153D63; color: white; border: none; border-radius: 6px;
+      font-size: 11px; font-weight: 600; cursor: pointer;
+    }
+
     /* Responsive */
     @media (max-width: 1024px) {
       .container { flex-direction: column; height: auto; }
@@ -405,6 +491,8 @@
       <div class="my-meetings-header" onclick="toggleMyMeetings()">
         <h3>My Meetings <span class="count-badge" id="my-meetings-count">0</span></h3>
         <div class="my-meetings-actions">
+          <button class="btn-hub" onclick="event.stopPropagation(); exportSchedule()" style="background:#27ae60;">Export</button>
+          <button class="btn-hub" onclick="event.stopPropagation(); shareSchedule()">Share</button>
           <button class="btn-hub" onclick="event.stopPropagation(); openHub()">Open Hub</button>
           <button class="btn-clear" onclick="event.stopPropagation(); clearAllSelections()">Clear</button>
           <span class="toggle-arrow">&#9660;</span>
@@ -420,6 +508,7 @@
     <div class="view-tabs">
       <button class="view-tab active" data-view="map" onclick="switchView('map')">Map</button>
       <button class="view-tab" data-view="calendar" onclick="switchView('calendar')">Calendar</button>
+      <button class="view-tab" data-view="contacts" onclick="switchView('contacts')">Contacts</button>
     </div>
     <div class="view-content">
       <!-- Map View -->
@@ -460,13 +549,99 @@
           </div>
         </div>
       </div>
+      <!-- Contacts View -->
+      <div class="view-pane hidden" id="view-contacts">
+        <div class="contacts-container">
+          <div class="contacts-header">
+            <h2>CRE Contacts</h2>
+            <div class="contacts-actions">
+              <button onclick="syncContacts()" style="background:#C5A355;color:white;" id="contacts-sync-btn">Sync from Hub</button>
+              <button onclick="exportContacts()" style="background:#153D63;color:white;">Export CSV</button>
+            </div>
+          </div>
+          <div class="contacts-search">
+            <input type="text" id="contacts-search" placeholder="Search contacts..." oninput="filterContacts()" />
+            <select id="contacts-profession-filter" onchange="filterContacts()">
+              <option value="">All Professions</option>
+              <option value="Commercial Real Estate">Commercial Real Estate</option>
+              <option value="Mortgage">Mortgage</option>
+              <option value="Lender">Lender</option>
+              <option value="Title">Title</option>
+              <option value="Escrow">Escrow</option>
+              <option value="Appraiser">Appraiser</option>
+              <option value="Insurance">Insurance</option>
+              <option value="CPA">CPA/Accountant</option>
+              <option value="Attorney">Attorney</option>
+              <option value="Property Management">Property Management</option>
+              <option value="1031 Exchange">1031 Exchange</option>
+            </select>
+          </div>
+          <div class="contacts-body">
+            <table class="contacts-table" id="contacts-table" style="display:none;">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Company</th>
+                  <th>Profession</th>
+                  <th>Group(s)</th>
+                  <th>Notes</th>
+                  <th style="width:30px;"></th>
+                </tr>
+              </thead>
+              <tbody id="contacts-tbody"></tbody>
+            </table>
+            <div class="contacts-empty" id="contacts-empty">
+              <p style="font-size:24px;">&#128101;</p>
+              <p>No CRE contacts yet.</p>
+              <p style="font-size:11px;color:#aaa;">Add contacts manually below or sync from the Hub (requires local server).</p>
+            </div>
+          </div>
+          <div class="add-contact-row">
+            <input type="text" id="new-contact-name" placeholder="Name" />
+            <input type="text" id="new-contact-company" placeholder="Company" />
+            <input type="text" id="new-contact-profession" placeholder="Profession" />
+            <input type="text" id="new-contact-group" placeholder="Group(s)" />
+            <input type="text" id="new-contact-notes" placeholder="Notes" />
+            <button onclick="addManualContact()">Add</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
 <div class="slot-tooltip" id="slot-tooltip"></div>
 
+<!-- Notes Modal -->
+<div class="overlay" id="notes-overlay" onclick="closeNotesModal()"></div>
+<div class="notes-modal" id="notes-modal">
+  <div class="notes-modal-header">
+    <h3 id="notes-modal-title">Group Notes</h3>
+    <div class="notes-meta" id="notes-modal-meta"></div>
+  </div>
+  <div class="notes-modal-body">
+    <textarea id="notes-text" placeholder="Add your impressions, key contacts met, follow-ups..."></textarea>
+    <div class="notes-rating">
+      <label>Rating:</label>
+      <span class="star" data-val="1" onclick="setNoteRating(1)">&#9733;</span>
+      <span class="star" data-val="2" onclick="setNoteRating(2)">&#9733;</span>
+      <span class="star" data-val="3" onclick="setNoteRating(3)">&#9733;</span>
+      <span class="star" data-val="4" onclick="setNoteRating(4)">&#9733;</span>
+      <span class="star" data-val="5" onclick="setNoteRating(5)">&#9733;</span>
+    </div>
+    <div class="notes-prev" id="notes-prev-entries">
+      <h4>Previous Notes</h4>
+      <div id="notes-prev-list"></div>
+    </div>
+  </div>
+  <div class="notes-modal-footer">
+    <button onclick="closeNotesModal()" style="background:#e0e0e0;color:#333;">Close</button>
+    <button onclick="saveNote()" style="background:#153D63;color:white;">Save Note</button>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <script>
 // ── City Coordinates ──
 const CITY_COORDS = {
@@ -811,10 +986,12 @@ const now = new Date(); calYear = now.getFullYear(); calMonth = now.getMonth();
 // ── View Switching ──
 function switchView(view) {
   document.querySelectorAll('.view-tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
-  document.getElementById('view-map').className = 'view-pane ' + (view === 'map' ? 'visible' : 'hidden');
-  document.getElementById('view-calendar').className = 'view-pane ' + (view === 'calendar' ? 'visible' : 'hidden');
+  ['map','calendar','contacts'].forEach(v => {
+    document.getElementById('view-' + v).className = 'view-pane ' + (view === v ? 'visible' : 'hidden');
+  });
   if (view === 'map') setTimeout(() => map.invalidateSize(), 100);
   if (view === 'calendar') renderCalendar();
+  if (view === 'contacts') renderContacts();
 }
 
 // ── Map Init ──
@@ -1614,6 +1791,8 @@ renderTable = function() {
       ? `<span onclick="event.stopPropagation();setMyHomeGroup(${idx})" title="${isMyHome?'Unset home group':'Set as my home group'}" style="cursor:pointer;font-size:15px;padding:3px 5px;display:inline-block;${isMyHome?'color:#1a7f37;':'color:#ccc;'}">${isMyHome?'&#9733;':'&#9734;'}</span>` : '<span style="display:inline-block;width:25px;"></span>';
     const favBtn = `<span onclick="event.stopPropagation();toggleFavorite(${idx})" title="${isFav?'Remove from favorites':'Add to favorites'}" style="cursor:pointer;font-size:15px;padding:3px 5px;display:inline-block;${isFav?'color:#e74c3c;':'color:#ccc;'}">${isFav?'&#10084;':'&#9825;'}</span>`;
     const avoidBtn = `<span onclick="event.stopPropagation();toggleAvoid(${idx})" title="${isAvoid?'Remove from avoid list':'Add to avoid list'}" style="cursor:pointer;font-size:15px;padding:3px 5px;display:inline-block;${isAvoid?'color:#e74c3c;':'color:#ccc;'}">${isAvoid?'&#128683;':'&#8856;'}</span>`;
+    const hasNotes = groupNotes[idx] && groupNotes[idx].length > 0;
+    const noteBtn = `<span onclick="event.stopPropagation();openNotesModal(${idx})" title="Meeting notes" style="cursor:pointer;font-size:14px;padding:3px 5px;display:inline-block;${hasNotes?'color:#C5A355;':'color:#ccc;'}">&#128221;</span>`;
     const rowClass = `${selectedMeetings.has(idx)?'selected':''} ${hubReg?'hub-registered':''} ${isMyHome?'my-home-group':''} ${isAvoid?'avoided-group':''}`;
     const fmtBadge = g.format === 'Virtual' ? '<span class="badge virtual">Virtual</span>'
       : g.format === 'In-Person' ? '<span class="badge in-person">In-Person</span>'
@@ -1622,7 +1801,7 @@ renderTable = function() {
     return `<tr onclick="focusGroup(${idx})" data-idx="${idx}" class="${rowClass}" style="${isAvoid?'opacity:0.5;':''}">
       <td class="cb-col" onclick="event.stopPropagation()"><input type="checkbox" ${checked} onchange="toggleSelection(${idx},this.checked)" /></td>
       <td><strong>${g.name}</strong>${hubBadge}${homeBadge}<br><span style="color:#636e72;font-size:11px">${g.leader}</span></td>
-      <td onclick="event.stopPropagation()" style="white-space:nowrap;text-align:center;display:flex;gap:2px;align-items:center;justify-content:center;">${homeBtn}${favBtn}${avoidBtn}</td>
+      <td onclick="event.stopPropagation()" style="white-space:nowrap;text-align:center;display:flex;gap:2px;align-items:center;justify-content:center;">${homeBtn}${favBtn}${avoidBtn}${noteBtn}</td>
       <td><span class="badge ${g.type.toLowerCase()}">${g.type}</span></td>
       <td>${g.city}</td>
       <td style="white-space:nowrap">${g.day}</td>
@@ -1773,9 +1952,11 @@ renderMyMeetings = function() {
       : '';
     const isFav = favoriteGroups.has(idx);
     const favIcon = isFav ? ' <span style="color:#e74c3c;font-size:10px;">&#10084;</span>' : '';
+    const hasNotes = groupNotes[idx] && groupNotes[idx].length > 0;
+    const noteIcon = hasNotes ? ' <span class="note-indicator" title="Has notes">&#128221;</span>' : '';
     const fmtLabel = g.format === 'Virtual' ? ' <span style="color:#0077b6;font-size:10px;font-weight:600;">&#128187; Virtual</span>'
       : g.format === 'In-Person' ? ' <span style="color:#1a7f37;font-size:10px;font-weight:600;">&#128205; In-Person</span>' : '';
-    return `<div class="my-meeting-item" style="${isMyHome?'border-left:3px solid #1a7f37;':''}"><div class="my-meeting-info"><strong>${g.name}</strong>${hubBadge}${homeBadge}${favIcon}${typeLabel}${fmtLabel}
+    return `<div class="my-meeting-item" style="${isMyHome?'border-left:3px solid #1a7f37;':''}"><div class="my-meeting-info"><strong>${g.name}</strong>${hubBadge}${homeBadge}${favIcon}${noteIcon}${typeLabel}${fmtLabel}
       <div class="meta">${g.day} &bull; ${g.time} &bull; ${g.city}${dist}</div></div>
       ${bookBtn}<button class="my-meeting-remove" onclick="removeSelection(${idx})" title="Remove">&times;</button></div>`;
   }).join('');
@@ -1815,17 +1996,287 @@ openHub = function() {
   }
 };
 
+// ── Meeting Notes ──
+let groupNotes = {};
+let currentNoteIdx = -1;
+let currentNoteRating = 0;
+
+function loadNotes() {
+  try { groupNotes = JSON.parse(localStorage.getItem('provisors-notes') || '{}'); } catch(e) { groupNotes = {}; }
+}
+function saveNotes() { localStorage.setItem('provisors-notes', JSON.stringify(groupNotes)); }
+
+function openNotesModal(idx) {
+  currentNoteIdx = idx;
+  currentNoteRating = 0;
+  const g = GROUPS[idx];
+  document.getElementById('notes-modal-title').textContent = g.name;
+  document.getElementById('notes-modal-meta').textContent = `${g.type} Group · ${g.region} · ${g.day} · ${g.city}`;
+  document.getElementById('notes-text').value = '';
+  setNoteRating(0);
+  renderPrevNotes(idx);
+  document.getElementById('notes-modal').classList.add('show');
+  document.getElementById('notes-overlay').classList.add('show');
+  document.getElementById('notes-text').focus();
+}
+function closeNotesModal() {
+  document.getElementById('notes-modal').classList.remove('show');
+  document.getElementById('notes-overlay').classList.remove('show');
+  currentNoteIdx = -1;
+}
+function setNoteRating(val) {
+  currentNoteRating = (currentNoteRating === val) ? 0 : val;
+  document.querySelectorAll('.notes-rating .star').forEach(s => {
+    s.classList.toggle('active', parseInt(s.dataset.val) <= currentNoteRating);
+  });
+}
+function saveNote() {
+  const text = document.getElementById('notes-text').value.trim();
+  if (!text && currentNoteRating === 0) { closeNotesModal(); return; }
+  if (!groupNotes[currentNoteIdx]) groupNotes[currentNoteIdx] = [];
+  groupNotes[currentNoteIdx].unshift({
+    text, rating: currentNoteRating,
+    date: new Date().toISOString().split('T')[0]
+  });
+  saveNotes();
+  document.getElementById('notes-text').value = '';
+  setNoteRating(0);
+  renderPrevNotes(currentNoteIdx);
+  renderTable(); renderMyMeetings();
+}
+function deleteNote(idx, noteIndex) {
+  if (!groupNotes[idx]) return;
+  groupNotes[idx].splice(noteIndex, 1);
+  if (groupNotes[idx].length === 0) delete groupNotes[idx];
+  saveNotes();
+  renderPrevNotes(idx);
+  renderTable(); renderMyMeetings();
+}
+function renderPrevNotes(idx) {
+  const list = document.getElementById('notes-prev-list');
+  const notes = groupNotes[idx] || [];
+  const container = document.getElementById('notes-prev-entries');
+  if (notes.length === 0) { container.style.display = 'none'; return; }
+  container.style.display = 'block';
+  list.innerHTML = notes.map((n, i) => {
+    const stars = n.rating ? '&#9733;'.repeat(n.rating) + '<span style="color:#ddd;">' + '&#9733;'.repeat(5 - n.rating) + '</span>' : '';
+    return `<div class="note-entry">
+      <span class="note-delete" onclick="deleteNote(${idx},${i})">&times;</span>
+      <span class="note-date">${n.date}</span> ${stars ? '<span class="note-stars">' + stars + '</span>' : ''}
+      <div class="note-text">${escapeHtml(n.text)}</div></div>`;
+  }).join('');
+}
+function escapeHtml(text) {
+  const d = document.createElement('div'); d.textContent = text; return d.innerHTML;
+}
+
+// ── Schedule Export (SheetJS) ──
+function exportSchedule() {
+  if (selectedMeetings.size === 0) { alert('No meetings selected to export.'); return; }
+  const rows = [...selectedMeetings].sort((a, b) => daySort(GROUPS[a].day) - daySort(GROUPS[b].day)).map(idx => {
+    const g = GROUPS[idx];
+    const notes = (groupNotes[idx] || []).map(n => `[${n.date}] ${n.text}`).join(' | ');
+    return {
+      'Group Name': g.name, 'Type': g.type, 'Region': g.region, 'Leader': g.leader,
+      'Day': g.day, 'Time': g.time, 'City': g.city, 'Format': g.format || '—',
+      'Distance (mi)': g.distance !== null ? g.distance.toFixed(1) : '—',
+      'Favorite': favoriteGroups.has(idx) ? 'Yes' : '',
+      'Notes': notes
+    };
+  });
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'My Meetings');
+  // Auto-width columns
+  const colWidths = Object.keys(rows[0]).map(k => ({ wch: Math.max(k.length, ...rows.map(r => String(r[k]).length).slice(0, 20)) + 2 }));
+  ws['!cols'] = colWidths;
+  const now = new Date();
+  const fname = `ProVisors-Schedule-${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}.xlsx`;
+  XLSX.writeFile(wb, fname);
+}
+
+// ── Schedule Sharing ──
+function shareSchedule() {
+  const shareData = {
+    s: [...selectedMeetings],
+    h: myHomeGroupIdx,
+    f: [...favoriteGroups],
+    a: [...avoidGroups],
+    n: 'Trevor Damyan'
+  };
+  const encoded = btoa(JSON.stringify(shareData));
+  const url = window.location.origin + window.location.pathname + '#share=' + encoded;
+  navigator.clipboard.writeText(url).then(() => {
+    alert('Share link copied to clipboard!\n\nAnyone with this link can view your schedule in read-only mode.');
+  }).catch(() => {
+    prompt('Copy this share link:', url);
+  });
+}
+
+function loadSharedSchedule() {
+  const hash = window.location.hash;
+  if (!hash.startsWith('#share=')) return false;
+  try {
+    const data = JSON.parse(atob(hash.substring(7)));
+    // Enter read-only mode
+    document.body.classList.add('shared-view');
+    // Apply shared selections
+    selectedMeetings.clear();
+    (data.s || []).forEach(idx => { if (idx >= 0 && idx < GROUPS.length) selectedMeetings.add(idx); });
+    myHomeGroupIdx = data.h ?? -1;
+    favoriteGroups.clear();
+    (data.f || []).forEach(idx => favoriteGroups.add(idx));
+    avoidGroups.clear();
+    (data.a || []).forEach(idx => avoidGroups.add(idx));
+    // Add banner
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background:#C5A355;color:white;padding:8px 20px;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:space-between;';
+    const name = data.n || 'Someone';
+    banner.innerHTML = `<span>Viewing ${escapeHtml(name)}'s ProVisors Schedule</span>
+      <button onclick="navigator.clipboard.writeText(window.location.href);this.textContent='Copied!'" style="background:white;color:#C5A355;border:none;border-radius:4px;padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer;">Copy Link</button>`;
+    document.body.insertBefore(banner, document.body.firstChild);
+    // Hide editing controls
+    const style = document.createElement('style');
+    style.textContent = `.shared-view .controls,.shared-view .my-meetings-actions,.shared-view .hub-bar,.shared-view .cb-col,.shared-view .add-contact-row,.shared-view .contacts-actions { display:none!important; }
+      .shared-view .my-meetings-header { cursor:default; } .shared-view .my-meeting-remove { display:none; }
+      .shared-view .table-wrap td:nth-child(3) { pointer-events:none; }`;
+    document.head.appendChild(style);
+    return true;
+  } catch(e) { console.error('Invalid share link:', e); return false; }
+}
+
+// ── CRE Contacts ──
+let creContacts = [];
+
+function loadContacts() {
+  try { creContacts = JSON.parse(localStorage.getItem('provisors-cre-contacts') || '[]'); } catch(e) { creContacts = []; }
+}
+function saveContacts() { localStorage.setItem('provisors-cre-contacts', JSON.stringify(creContacts)); }
+
+function renderContacts() {
+  const tbody = document.getElementById('contacts-tbody');
+  const table = document.getElementById('contacts-table');
+  const empty = document.getElementById('contacts-empty');
+  const searchVal = (document.getElementById('contacts-search').value || '').toLowerCase();
+  const profFilter = document.getElementById('contacts-profession-filter').value.toLowerCase();
+
+  let filtered = creContacts.filter(c => {
+    const matchSearch = !searchVal ||
+      (c.name || '').toLowerCase().includes(searchVal) ||
+      (c.company || '').toLowerCase().includes(searchVal) ||
+      (c.profession || '').toLowerCase().includes(searchVal) ||
+      (c.groups || '').toLowerCase().includes(searchVal) ||
+      (c.notes || '').toLowerCase().includes(searchVal);
+    const matchProf = !profFilter || (c.profession || '').toLowerCase().includes(profFilter);
+    return matchSearch && matchProf;
+  });
+
+  if (filtered.length === 0) {
+    table.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  table.style.display = 'table';
+  empty.style.display = 'none';
+  tbody.innerHTML = filtered.map((c, i) => {
+    const origIdx = creContacts.indexOf(c);
+    const groups = (c.groups || '').split(',').map(g => g.trim()).filter(g => g);
+    const chips = groups.map(g => `<span class="contact-chip">${escapeHtml(g)}</span>`).join('');
+    return `<tr>
+      <td class="contact-name">${escapeHtml(c.name || '')}</td>
+      <td>${escapeHtml(c.company || '')}</td>
+      <td>${escapeHtml(c.profession || '')}</td>
+      <td><div class="contact-chips">${chips || '—'}</div></td>
+      <td class="contact-notes" title="${escapeHtml(c.notes || '')}">${escapeHtml(c.notes || '—')}</td>
+      <td><span onclick="deleteContact(${origIdx})" style="cursor:pointer;color:#ccc;font-size:14px;" title="Remove">&times;</span></td></tr>`;
+  }).join('');
+}
+function filterContacts() { renderContacts(); }
+
+function addManualContact() {
+  const name = document.getElementById('new-contact-name').value.trim();
+  if (!name) { alert('Name is required.'); return; }
+  creContacts.push({
+    name,
+    company: document.getElementById('new-contact-company').value.trim(),
+    profession: document.getElementById('new-contact-profession').value.trim(),
+    groups: document.getElementById('new-contact-group').value.trim(),
+    notes: document.getElementById('new-contact-notes').value.trim(),
+    source: 'manual', added: new Date().toISOString().split('T')[0]
+  });
+  saveContacts(); renderContacts();
+  ['new-contact-name','new-contact-company','new-contact-profession','new-contact-group','new-contact-notes'].forEach(id => document.getElementById(id).value = '');
+}
+function deleteContact(idx) {
+  creContacts.splice(idx, 1);
+  saveContacts(); renderContacts();
+}
+
+async function syncContacts() {
+  const btn = document.getElementById('contacts-sync-btn');
+  btn.disabled = true; btn.textContent = 'Syncing...';
+  const keywords = ['commercial real estate','mortgage broker','lender','title','escrow','appraiser','insurance','accountant','attorney real estate','property management','1031 exchange'];
+  try {
+    let allResults = [];
+    for (const kw of keywords) {
+      const res = await fetch(`${SERVER_URL}/api/hub/search-members?q=${encodeURIComponent(kw)}`);
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (Array.isArray(data)) allResults = allResults.concat(data);
+    }
+    // Deduplicate by name
+    const seen = new Set();
+    allResults.forEach(m => {
+      const key = (m.name || '').toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      // Check if already exists
+      const existing = creContacts.find(c => c.name.toLowerCase() === key);
+      if (!existing) {
+        creContacts.push({
+          name: m.name || '', company: m.company || '', profession: m.profession || '',
+          groups: (m.groups || []).join(', '), notes: m.email || '',
+          source: 'hub', added: new Date().toISOString().split('T')[0]
+        });
+      }
+    });
+    saveContacts(); renderContacts();
+    btn.textContent = `Synced (${allResults.length} found)`;
+  } catch(e) {
+    alert('Sync failed. Is the local server running?\n\n' + e.message);
+    btn.textContent = 'Sync from Hub';
+  }
+  btn.disabled = false;
+  setTimeout(() => { btn.textContent = 'Sync from Hub'; }, 3000);
+}
+
+function exportContacts() {
+  if (creContacts.length === 0) { alert('No contacts to export.'); return; }
+  const rows = creContacts.map(c => `"${(c.name||'').replace(/"/g,'""')}","${(c.company||'').replace(/"/g,'""')}","${(c.profession||'').replace(/"/g,'""')}","${(c.groups||'').replace(/"/g,'""')}","${(c.notes||'').replace(/"/g,'""')}"`);
+  const csv = 'Name,Company,Profession,Groups,Notes\n' + rows.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ProVisors-CRE-Contacts.csv';
+  a.click();
+}
+
 // ── Init ──
-initHubRegistrations(); // load embedded Hub data first (sets formats + selections)
-loadSelections();       // then overlay any user localStorage selections
-loadHubData();          // then load any cached live-sync data (overrides embedded)
+loadNotes();
+loadContacts();
+const isSharedView = loadSharedSchedule();
+if (!isSharedView) {
+  initHubRegistrations(); // load embedded Hub data first (sets formats + selections)
+  loadSelections();       // then overlay any user localStorage selections
+  loadHubData();          // then load any cached live-sync data (overrides embedded)
+}
 applyFilters();
 
 // Default address — pre-fill and auto-calculate on first load
 const addrInput = document.getElementById('user-address');
 const savedAddr = localStorage.getItem('provisors-user-address');
 addrInput.value = savedAddr || '7951 Blackburn Ave, Los Angeles, CA';
-geocodeAddress();
+if (!isSharedView) geocodeAddress();
 </script>
 </body>
 </html>

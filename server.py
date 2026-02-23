@@ -153,6 +153,17 @@ async def hub_register(req: RegisterRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/api/hub/search-members")
+async def hub_search_members(q: str = "", region: str = ""):
+    """Search the Hub member directory by keyword."""
+    try:
+        b = await get_bot()
+        data = await b.search_members(q, region)
+        return data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/api/hub/cached")
 async def hub_cached():
     """Return the last cached sync data (no bot needed)."""

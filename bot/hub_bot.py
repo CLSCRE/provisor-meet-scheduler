@@ -457,6 +457,115 @@ class HubBot:
             "url": self.page.url,
         }
 
+    # ── Member Search ──
+
+    async def search_members(self, query="", region=""):
+        """
+        Search the Hub member directory for members matching a keyword.
+        Returns list of member dicts: { name, company, profession, groups, email, phone }.
+        """
+        await self.ensure_logged_in()
+        search_url = f"{HUB_BASE}/NC__MemberSearch"
+        await self.page.goto(search_url, wait_until="networkidle", timeout=30000)
+        await self.page.wait_for_timeout(3000)
+
+        # Try to find and fill the search input
+        if query:
+            search_input = self.page.locator(
+                'input[type="search"], input[type="text"][placeholder*="search" i], '
+                'input[name*="search" i], input[class*="search" i], '
+                'input[placeholder*="keyword" i], input[placeholder*="name" i]'
+            ).first
+            if await search_input.count():
+                await search_input.fill(query)
+                await search_input.press("Enter")
+                await self.page.wait_for_timeout(3000)
+            else:
+                # Try a keyword/text field
+                text_input = self.page.locator('input[type="text"]').first
+                if await text_input.count():
+                    await text_input.fill(query)
+                    # Look for a search/submit button
+                    submit_btn = self.page.locator(
+                        'button:has-text("Search"), input[value*="Search"], '
+                        'button[type="submit"]'
+                    ).first
+                    if await submit_btn.count():
+                        await submit_btn.click()
+                    else:
+                        await text_input.press("Enter")
+                    await self.page.wait_for_timeout(3000)
+
+        await self.screenshot(f"member_search_{query[:20]}")
+
+        all_members = []
+        page_num = 1
+
+        while True:
+            members = await self.page.evaluate("""() => {
+                const results = [];
+                // Try table rows first
+                const rows = document.querySelectorAll('table tbody tr, [class*="member"], [class*="Member"], [class*="contact"], [class*="result"]');
+                rows.forEach(row => {
+                    const text = (row.innerText || '').trim();
+                    if (text.length < 5 || text.length > 2000) return;
+                    const links = [];
+                    row.querySelectorAll('a[href]').forEach(a => {
+                        links.push({ text: a.innerText.trim(), href: a.href });
+                    });
+                    // Try to extract structured data from table cells
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length >= 2) {
+                        results.push({
+                            name: (cells[0]?.innerText || '').trim(),
+                            company: (cells[1]?.innerText || '').trim(),
+                            profession: (cells[2]?.innerText || '').trim(),
+                            groups: (cells[3]?.innerText || '').trim().split('\\n').filter(s => s.trim()),
+                            email: '',
+                            phone: '',
+                            links
+                        });
+                    } else {
+                        // Card-style layout
+                        const lines = text.split('\\n').map(l => l.trim()).filter(l => l);
+                        if (lines.length >= 1) {
+                            results.push({
+                                name: lines[0] || '',
+                                company: lines[1] || '',
+                                profession: lines[2] || '',
+                                groups: lines.slice(3).filter(l => !l.includes('@') && !l.match(/^\\d/)),
+                                email: lines.find(l => l.includes('@')) || '',
+                                phone: lines.find(l => l.match(/^\\(?\\d{3}/)) || '',
+                                links
+                            });
+                        }
+                    }
+                });
+
+                // Pagination check
+                const pageText = document.body.innerText;
+                const pageInfo = pageText.match(/Page\\s+(\\d+)\\s+of\\s+(\\d+)/);
+                const hasNext = pageInfo ? parseInt(pageInfo[1]) < parseInt(pageInfo[2]) : false;
+
+                return { members: results, hasNext };
+            }""")
+
+            all_members.extend(members.get("members", []))
+            print(f"  Member search '{query}' page {page_num}: {len(members.get('members', []))} results")
+
+            if not members.get("hasNext") or page_num >= 5:
+                break
+
+            next_btn = self.page.locator("a:has-text('Next'), a[title='Next']").first
+            if not await next_btn.count():
+                break
+            await next_btn.click()
+            await self.page.wait_for_load_state("networkidle", timeout=15000)
+            await self.page.wait_for_timeout(2000)
+            page_num += 1
+
+        return all_members
+
     # ── Full Sync ──
 
     async def full_sync(self):
