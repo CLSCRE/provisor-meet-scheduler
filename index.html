@@ -372,9 +372,48 @@
       .cal-day { min-height: 70px; }
       .hub-bar { flex-wrap: wrap; }
     }
+
+    /* Login Overlay */
+    .login-overlay {
+      position: fixed; inset: 0; z-index: 10000;
+      background: linear-gradient(135deg, #153D63 0%, #1a5276 60%, #0d2b45 100%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .login-overlay.hidden { display: none; }
+    .login-card {
+      background: white; border-radius: 12px; padding: 40px 36px; width: 380px; max-width: 90vw;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3); text-align: center;
+    }
+    .login-card h2 { font-size: 22px; color: #153D63; margin-bottom: 4px; }
+    .login-card h2 span { color: #C5A355; }
+    .login-card .login-subtitle { font-size: 13px; color: #636e72; margin-bottom: 24px; }
+    .login-card input {
+      width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px;
+      font-size: 14px; outline: none; margin-bottom: 12px; transition: border-color 0.2s;
+    }
+    .login-card input:focus { border-color: #153D63; }
+    .login-card button {
+      width: 100%; padding: 11px; background: #153D63; color: white; border: none; border-radius: 6px;
+      font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.2s;
+    }
+    .login-card button:hover { background: #1a5276; }
+    .login-error {
+      color: #c0392b; font-size: 12px; margin-top: 10px; min-height: 18px;
+    }
   </style>
 </head>
 <body>
+
+<div class="login-overlay" id="login-overlay">
+  <div class="login-card">
+    <h2>Pro<span>Visors</span> Scheduler</h2>
+    <div class="login-subtitle">LA Meeting Groups &bull; CLS CRE</div>
+    <input type="text" id="login-user" placeholder="Username" autocomplete="username" />
+    <input type="password" id="login-pass" placeholder="Password" autocomplete="current-password" />
+    <button id="login-btn">Login</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
 
 <div class="header">
   <div>
@@ -643,6 +682,51 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <script>
+// ── Authentication ──
+const VALID_USERS = [
+  { user: 'trevor', name: 'Trevor Damyan', hash: '14ef83d5b9435c0a27e33c8faf1cc410c3b817a7834f2552fbe680633646c669' }
+];
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function attemptLogin() {
+  const user = document.getElementById('login-user').value.trim().toLowerCase();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  if (!user || !pass) { errEl.textContent = 'Please enter username and password.'; return; }
+  const hash = await sha256(user + ':' + pass);
+  const match = VALID_USERS.find(u => u.user === user && u.hash === hash);
+  if (match) {
+    sessionStorage.setItem('provisors-auth', JSON.stringify({ user: match.user, name: match.name }));
+    document.getElementById('login-overlay').classList.add('hidden');
+  } else {
+    errEl.textContent = 'Invalid username or password.';
+  }
+}
+
+(function checkAuth() {
+  // Shared view links bypass login
+  if (window.location.hash.startsWith('#share=')) {
+    document.getElementById('login-overlay').classList.add('hidden');
+    return;
+  }
+  const session = sessionStorage.getItem('provisors-auth');
+  if (session) {
+    try { JSON.parse(session); document.getElementById('login-overlay').classList.add('hidden'); } catch(e) { /* show login */ }
+  }
+})();
+
+document.getElementById('login-btn').addEventListener('click', attemptLogin);
+document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') attemptLogin(); });
+document.getElementById('login-user').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('login-pass').focus(); });
+
+function getLoggedInName() {
+  try { return JSON.parse(sessionStorage.getItem('provisors-auth')).name; } catch(e) { return 'Someone'; }
+}
+
 // ── City Coordinates ──
 const CITY_COORDS = {
   "Los Angeles":[34.0522,-118.2437],"Beverly Hills":[34.0736,-118.4004],"Burbank":[34.1808,-118.309],
@@ -704,6 +788,10 @@ function jitter(coords, index, total) {
   const spread = 0.006, angle = (index / total) * 2 * Math.PI, r = spread * Math.sqrt(index / total);
   return [coords[0] + r * Math.cos(angle), coords[1] + r * Math.sin(angle)];
 }
+
+// ── Embedded Contacts (auto-generated) ──
+const EMBEDDED_CONTACTS = [];
+// ── End Embedded Contacts ──
 
 // ── Groups Data ──
 const GROUPS = [
@@ -2102,7 +2190,7 @@ function shareSchedule() {
     h: myHomeGroupIdx,
     f: [...favoriteGroups],
     a: [...avoidGroups],
-    n: 'Trevor Damyan'
+    n: getLoggedInName()
   };
   const encoded = btoa(JSON.stringify(shareData));
   const url = window.location.origin + window.location.pathname + '#share=' + encoded;
@@ -2150,6 +2238,20 @@ let creContacts = [];
 
 function loadContacts() {
   try { creContacts = JSON.parse(localStorage.getItem('provisors-cre-contacts') || '[]'); } catch(e) { creContacts = []; }
+  // Merge embedded contacts (baseline) — skip any already in localStorage by name
+  if (typeof EMBEDDED_CONTACTS !== 'undefined' && EMBEDDED_CONTACTS.length > 0) {
+    const existingNames = new Set(creContacts.map(c => (c.name || '').toLowerCase()));
+    let added = 0;
+    EMBEDDED_CONTACTS.forEach(ec => {
+      const key = (ec.name || '').toLowerCase();
+      if (key && !existingNames.has(key)) {
+        creContacts.push({...ec});
+        existingNames.add(key);
+        added++;
+      }
+    });
+    if (added > 0) saveContacts();
+  }
 }
 function saveContacts() { localStorage.setItem('provisors-cre-contacts', JSON.stringify(creContacts)); }
 
@@ -2243,8 +2345,8 @@ async function syncContacts() {
     saveContacts(); renderContacts();
     btn.textContent = `Synced (${allResults.length} found)`;
   } catch(e) {
-    alert('Sync failed. Is the local server running?\n\n' + e.message);
-    btn.textContent = 'Sync from Hub';
+    btn.textContent = 'Using embedded contacts';
+    console.log('Hub sync unavailable, using embedded contacts:', e.message);
   }
   btn.disabled = false;
   setTimeout(() => { btn.textContent = 'Sync from Hub'; }, 3000);
