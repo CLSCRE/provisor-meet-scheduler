@@ -157,10 +157,17 @@ async def harvest():
                     continue
                 seen.add(key)
                 groups = (m.get("groups") or "").strip().rstrip(",").strip()
+                # Combine Profession + Professional Focus for richer filtering
+                prof = (m.get("profession") or "").strip()
+                focus = (m.get("focus") or "").strip()
+                if focus and focus.lower() != prof.lower():
+                    profession = f"{prof} — {focus}"
+                else:
+                    profession = prof
                 all_contacts.append({
                     "name": m["name"].strip(),
                     "company": (m.get("company") or "").strip(),
-                    "profession": (m.get("profession") or "").strip(),
+                    "profession": profession,
                     "groups": groups,
                     "notes": (m.get("email") or "").strip(),
                     "source": "hub",
