@@ -89,15 +89,15 @@
     .table-wrap th.cb-col, .table-wrap td.cb-col { width: 28px; text-align: center; padding: 6px 2px; }
     .table-wrap td.cb-col { cursor: default; }
     .cb-col input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-color: #C5A355; }
-    .table-footer { padding: 6px 16px; background: #fafafa; border-top: 1px solid #eee; font-size: 12px; color: #636e72; }
+    .table-footer { padding: 8px 16px; background: #fafafa; border-top: 1px solid #eee; font-size: 12px; color: #636e72; flex-shrink: 0; }
 
     /* My Meetings Panel */
-    .my-meetings { border-top: 2px solid #C5A355; background: #fdfaf3; overflow: hidden; transition: max-height 0.3s ease; }
-    .my-meetings.collapsed { max-height: 38px; }
+    .my-meetings { border-top: 2px solid #C5A355; background: #fdfaf3; overflow: hidden; transition: max-height 0.3s ease; flex-shrink: 0; }
+    .my-meetings.collapsed { max-height: 46px; }
     .my-meetings.expanded { max-height: 45vh; }
     .my-meetings-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 8px 16px; cursor: pointer; user-select: none;
+      padding: 10px 16px; cursor: pointer; user-select: none; min-height: 44px;
     }
     .my-meetings-header h3 { font-size: 13px; font-weight: 700; color: #153D63; display: flex; align-items: center; gap: 8px; }
     .my-meetings-header .count-badge {
@@ -613,8 +613,8 @@
   </div>
 </div>
 
-<!-- Hub Integration Bar -->
-<div class="hub-bar" id="hub-bar">
+<!-- Hub Integration Bar (hidden - auto-syncs in background) -->
+<div class="hub-bar" id="hub-bar" style="display:none;">
   <div class="hub-status">
     <div class="hub-dot" id="hub-dot"></div>
     <span id="hub-status-text">Hub: Not connected</span>
@@ -626,7 +626,7 @@
     <input type="checkbox" id="auto-book-toggle" onchange="toggleAutoBook()" />
     <label for="auto-book-toggle">Auto-Book via Hub</label>
   </div>
-  <button class="btn-sync" onclick="showServerConfig()" style="background:#636e72;font-size:10px;padding:3px 8px;">Server</button>
+
 </div>
 
 <!-- Server Config Modal -->
@@ -702,6 +702,7 @@
             <th style="text-align:center;">Freq</th>
             <th onclick="sortBy('type')">Type</th>
             <th onclick="sortBy('city')">City</th>
+            <th>Venue</th>
             <th onclick="sortBy('day')">Day</th>
             <th onclick="sortBy('time')">Time</th>
             <th onclick="sortBy('format')">Format</th>
@@ -716,9 +717,9 @@
       <div class="my-meetings-header" onclick="toggleMyMeetings()">
         <h3>My Meetings <span class="count-badge" id="my-meetings-count">0</span></h3>
         <div class="my-meetings-actions">
+          <button class="btn-hub" onclick="event.stopPropagation(); scheduleSelected()" style="background:#C5A355;">Schedule</button>
           <button class="btn-hub" onclick="event.stopPropagation(); exportSchedule()" style="background:#27ae60;">Export</button>
           <button class="btn-hub" onclick="event.stopPropagation(); shareSchedule()">Share</button>
-          <button class="btn-hub" onclick="event.stopPropagation(); openHub()">Open Hub</button>
           <button class="btn-clear" onclick="event.stopPropagation(); clearAllSelections()">Clear</button>
           <span class="toggle-arrow">&#9660;</span>
         </div>
@@ -4053,6 +4054,7 @@ function renderTable() {
       <td style="text-align:center;">${buildFreqSelect(idx)}</td>
       <td><span class="badge ${g.type.toLowerCase()}">${g.type}</span></td>
       <td>${g.city}</td>
+      <td>${buildVenueCell(idx)}</td>
       <td style="white-space:nowrap">${g.day}</td>
       <td style="white-space:nowrap">${g.time}</td>
       <td>${fmtBadge}</td>
@@ -4713,6 +4715,7 @@ renderTable = function() {
       <td onclick="event.stopPropagation()" style="text-align:center;">${buildFreqSelect(idx)}</td>
       <td><span class="badge ${g.type.toLowerCase()}">${g.type}</span></td>
       <td>${g.city}</td>
+      <td>${buildVenueCell(idx)}</td>
       <td style="white-space:nowrap">${g.day}</td>
       <td style="white-space:nowrap">${g.time}</td>
       <td>${fmtBadge}</td>
@@ -4916,6 +4919,84 @@ async function bookMeeting(idx) {
   }
 }
 
+// ── Schedule Selected Meetings via Hub ──
+async function scheduleSelected() {
+  if (selectedMeetings.size === 0) { alert('No meetings selected. Check some groups first.'); return; }
+  // Filter out already hub-registered meetings
+  const toSchedule = [...selectedMeetings].filter(idx => {
+    const hubReg = typeof isHubRegistered === 'function' && isHubRegistered(idx);
+    return !hubReg;
+  });
+  if (toSchedule.length === 0) { alert('All selected meetings are already registered on the Hub!'); return; }
+  const names = toSchedule.map(idx => GROUPS[idx].name);
+  const msg = toSchedule.length === 1
+    ? `Auto-schedule "${names[0]}" on ProVisors Hub?`
+    : `Auto-schedule ${toSchedule.length} meetings on ProVisors Hub?\n\n${names.join('\n')}`;
+  if (!confirm(msg)) return;
+
+  // Try auto-registration via local bot server
+  let serverAvailable = false;
+  try {
+    const ping = await fetch(`${SERVER_URL}/api/hub/cached`, { signal: AbortSignal.timeout(2000) });
+    serverAvailable = ping.ok;
+  } catch(e) { /* server not running */ }
+
+  if (serverAvailable) {
+    // Ensure logged in first
+    try {
+      const loginCheck = await fetch(`${SERVER_URL}/api/hub/sync`, { signal: AbortSignal.timeout(5000) });
+      if (!loginCheck.ok) {
+        await fetch(`${SERVER_URL}/api/hub/login`, { method: 'POST' });
+      }
+    } catch(e) { /* proceed anyway */ }
+
+    let succeeded = 0, failed = [];
+    for (const idx of toSchedule) {
+      const g = GROUPS[idx];
+      try {
+        // Search for the event on Hub to get its URL
+        const searchName = g.name.replace(/\s*-\s*.*$/, '').replace(/\d+$/, '').trim();
+        const searchRes = await fetch(`${SERVER_URL}/api/hub/search-events?q=${encodeURIComponent(searchName)}`);
+        const searchData = await searchRes.json();
+        // Find a registration/view link
+        let eventUrl = null;
+        const allLinks = searchData?.links || [];
+        for (const link of allLinks) {
+          if (link.href && (link.href.includes('viewregistration') || link.href.includes('event') || link.text.toLowerCase().includes('register'))) {
+            eventUrl = link.href;
+            break;
+          }
+        }
+        if (eventUrl) {
+          const regRes = await fetch(`${SERVER_URL}/api/hub/register`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ event_url: eventUrl })
+          });
+          const regData = await regRes.json();
+          if (regData.success) { succeeded++; } else { failed.push(g.name); }
+        } else {
+          failed.push(g.name + ' (not found)');
+        }
+      } catch(e) { failed.push(g.name + ' (error)'); }
+    }
+    let resultMsg = `Auto-scheduled ${succeeded} of ${toSchedule.length} meetings.`;
+    if (failed.length > 0) resultMsg += `\n\nCould not auto-schedule:\n${failed.join('\n')}`;
+    alert(resultMsg);
+    // Re-sync registrations
+    try { await fetch(`${SERVER_URL}/api/hub/sync`); } catch(e) {}
+  } else {
+    // Fallback: open Hub event pages directly, pre-logged in
+    alert(`Opening ProVisors Hub to register ${toSchedule.length} meeting(s).\n\nMake sure you're logged into hub.provisors.com, then click Register on each page.`);
+    toSchedule.forEach((idx, i) => {
+      const g = GROUPS[idx];
+      const searchName = encodeURIComponent(g.name.replace(/\s*-\s*.*$/, '').replace(/\d+$/, '').trim());
+      setTimeout(() => {
+        window.open(`https://hub.provisors.com/event-search?search=${searchName}`, '_blank');
+      }, i * 800);
+    });
+  }
+}
+
 // ── Override openHub to be smarter ──
 openHub = function() {
   if (hubConnected) {
@@ -4960,6 +5041,31 @@ function loadFrequency() {
   try { visitFrequency = JSON.parse(localStorage.getItem('provisors-visit-frequency') || '{}'); } catch(e) { visitFrequency = {}; }
 }
 function saveFrequency() { localStorage.setItem('provisors-visit-frequency', JSON.stringify(visitFrequency)); }
+
+// ── Venue Data ──
+let venueData = {};
+function loadVenues() { try { venueData = JSON.parse(localStorage.getItem('provisors-venues') || '{}'); } catch(e) { venueData = {}; } }
+function saveVenues() { localStorage.setItem('provisors-venues', JSON.stringify(venueData)); }
+function getVenue(idx) { return venueData[idx] || ''; }
+function setVenue(idx, val) {
+  val = val.trim();
+  if (val) venueData[idx] = val; else delete venueData[idx];
+  saveVenues();
+}
+function buildVenueCell(idx) {
+  const v = getVenue(idx);
+  return `<span class="venue-text" onclick="event.stopPropagation();editVenue(this,${idx})" title="${v ? escapeHtml(v) : 'Click to add venue'}" style="cursor:pointer;font-size:11px;color:${v ? '#2d3436' : '#ccc'};max-width:80px;display:inline-block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${v ? escapeHtml(v) : '+ venue'}</span>`;
+}
+function editVenue(el, idx) {
+  const current = getVenue(idx);
+  const input = document.createElement('input');
+  input.type = 'text'; input.value = current;
+  input.style.cssText = 'font-size:11px;width:80px;padding:1px 4px;border:1px solid #153D63;border-radius:3px;outline:none;';
+  input.onblur = function() { setVenue(idx, this.value); renderTable(); };
+  input.onkeydown = function(e) { if (e.key === 'Enter') this.blur(); if (e.key === 'Escape') { this.value = current; this.blur(); } };
+  el.replaceWith(input);
+  input.focus();
+}
 
 function buildFreqSelect(idx) {
   const vf = visitFrequency[idx];
@@ -5124,7 +5230,7 @@ function exportSchedule() {
     const plannedMonths = vf && vf.months ? vf.months.map(m => MONTH_ABBR[m]).join(', ') : '';
     return {
       'Group Name': g.name, 'Type': g.type, 'Region': g.region, 'Leader': g.leader,
-      'Day': g.day, 'Time': g.time, 'City': g.city, 'Format': g.format || '—',
+      'Day': g.day, 'Time': g.time, 'City': g.city, 'Venue': getVenue(idx), 'Format': g.format || '—',
       'Distance (mi)': g.distance !== null ? g.distance.toFixed(1) : '—',
       'Visit Freq': freqLabel, 'Planned Months': plannedMonths,
       'Favorite': favoriteGroups.has(idx) ? 'Yes' : '',
@@ -5767,6 +5873,7 @@ function renderDashboard() {
 // ── Init ──
 loadNotes();
 loadFrequency();
+loadVenues();
 loadAttendance();
 loadRoi();
 loadFollowUps();
