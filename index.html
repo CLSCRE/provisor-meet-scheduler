@@ -25,7 +25,7 @@
 
     /* Layout */
     .container { display: flex; height: calc(100vh - 100px); }
-    .sidebar { width: 520px; min-width: 520px; display: flex; flex-direction: column; background: white; border-right: 1px solid #dfe6e9; }
+    .sidebar { width: 820px; min-width: 820px; display: flex; flex-direction: column; background: white; border-right: 1px solid #dfe6e9; }
     .right-panel { flex: 1; position: relative; display: flex; flex-direction: column; }
 
     /* View Tabs */
@@ -320,6 +320,53 @@
     }
     .note-indicator { color: #C5A355; font-size: 10px; margin-left: 4px; vertical-align: middle; }
 
+    /* Frequency Column */
+    .freq-select {
+      font-size: 10px; padding: 2px 4px; border: 1px solid #ddd; border-radius: 4px;
+      background: white; cursor: pointer; outline: none; color: #999; min-width: 58px;
+    }
+    .freq-select.has-value { color: #153D63; font-weight: 600; border-color: #153D63; }
+
+    /* Frequency Month Picker Modal */
+    .freq-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 10000; }
+    .freq-overlay.show { display: block; }
+    .freq-modal {
+      display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      background: white; padding: 0; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      z-index: 10001; width: 360px; overflow: hidden; flex-direction: column;
+    }
+    .freq-modal.show { display: flex; }
+    .freq-modal-header {
+      padding: 14px 20px; background: #153D63; color: white; border-radius: 12px 12px 0 0;
+    }
+    .freq-modal-header h3 { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+    .freq-modal-header .freq-meta { font-size: 11px; opacity: 0.8; }
+    .freq-month-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 20px;
+    }
+    .freq-month-btn {
+      padding: 10px 4px; border: 2px solid #e0e0e0; border-radius: 8px; background: white;
+      font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.15s;
+      color: #636e72;
+    }
+    .freq-month-btn:hover { border-color: #153D63; color: #153D63; }
+    .freq-month-btn.suggested { border-color: #C5A355; color: #C5A355; }
+    .freq-month-btn.selected { background: #153D63; color: white; border-color: #153D63; }
+    .freq-modal-footer {
+      padding: 12px 20px; border-top: 1px solid #eee; display: flex; gap: 8px; justify-content: flex-end;
+    }
+    .freq-modal-footer button {
+      padding: 8px 18px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+
+    /* Pro Forma Calendar Slot */
+    .cal-slot.proforma {
+      background: #f3e8fd; color: #7b2cbf; border: 2px dashed #9b59b6;
+      cursor: pointer; position: relative;
+    }
+    .cal-slot.proforma:hover { background: #e8d5f5; border-color: #7b2cbf; }
+    .cal-slot.proforma .slot-label { font-weight: 700; }
+
     /* Contacts Tab */
     .contacts-container { height: 100%; display: flex; flex-direction: column; background: white; overflow: hidden; }
     .contacts-header {
@@ -505,6 +552,7 @@
           <option value="city">Sort: City</option>
           <option value="day">Sort: Day</option>
         </select>
+        <button onclick="clearAllSelections()" style="padding:6px 10px;background:#e74c3c;color:white;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">Clear All</button>
       </div>
     </div>
     <div class="table-wrap">
@@ -514,6 +562,7 @@
             <th class="cb-col" onclick="event.stopPropagation()"></th>
             <th onclick="sortBy('name')">Group</th>
             <th style="text-align:center;">Rate</th>
+            <th style="text-align:center;">Freq</th>
             <th onclick="sortBy('type')">Type</th>
             <th onclick="sortBy('city')">City</th>
             <th onclick="sortBy('day')">Day</th>
@@ -575,6 +624,7 @@
               <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#153D63"></div> Visiting Home</div>
               <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#C5A355"></div> Affinity Group</div>
               <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fff8e6;border:1px solid #f0d78c"></div> Available</div>
+              <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#f3e8fd;border:2px dashed #9b59b6"></div> Planned Visit</div>
               <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#f0f7f0;border:1px dashed #b8dab8"></div> Open Slot</div>
             </div>
           </div>
@@ -682,6 +732,21 @@
   <div class="notes-modal-footer">
     <button onclick="closeNotesModal()" style="background:#e0e0e0;color:#333;">Close</button>
     <button onclick="saveNote()" style="background:#153D63;color:white;">Save Note</button>
+  </div>
+</div>
+
+<!-- Frequency Month Picker Modal -->
+<div class="freq-overlay" id="freq-overlay" onclick="closeFreqModal()"></div>
+<div class="freq-modal" id="freq-modal">
+  <div class="freq-modal-header">
+    <h3 id="freq-modal-title">Select Months</h3>
+    <div class="freq-meta" id="freq-modal-meta"></div>
+  </div>
+  <div class="freq-month-grid" id="freq-month-grid"></div>
+  <div class="freq-modal-footer">
+    <button onclick="closeFreqModal()" style="background:#e0e0e0;color:#333;">Cancel</button>
+    <button onclick="clearFreqModal()" style="background:#e74c3c;color:white;">Clear</button>
+    <button onclick="saveFreqModal()" style="background:#153D63;color:white;">Save</button>
   </div>
 </div>
 
@@ -3614,7 +3679,7 @@ async function geocodeAddress() {
     if (!data.length) { alert('Address not found.'); return; }
     localStorage.setItem('provisors-user-address', addr);
     setUserLocation(parseFloat(data[0].lat), parseFloat(data[0].lon), addr);
-  } catch(e) { alert('Geocoding error: ' + e.message); }
+  } catch(e) { console.warn('Geocoding error:', e.message); }
 }
 function useMyLocation() {
   if (!navigator.geolocation) { alert('Geolocation not supported'); return; }
@@ -3733,6 +3798,7 @@ function renderTable() {
         <span onclick="toggleFavorite(${idx})" title="${isFav?'Remove from favorites':'Add to favorites'}" style="cursor:pointer;font-size:13px;padding:2px 6px;${isFav?'color:#e74c3c;':'color:#ccc;'}">${isFav?'&#10084;':'&#9825;'}</span>
         <span onclick="toggleAvoid(${idx})" title="${isAvoid?'Remove from avoid list':'Add to avoid list'}" style="cursor:pointer;font-size:13px;padding:2px 6px;${isAvoid?'color:#e74c3c;':'color:#ccc;'}">${isAvoid?'&#128683;':'&#8856;'}</span>
       </td>
+      <td style="text-align:center;">${buildFreqSelect(idx)}</td>
       <td><span class="badge ${g.type.toLowerCase()}">${g.type}</span></td>
       <td>${g.city}</td>
       <td style="white-space:nowrap">${g.day}</td>
@@ -4392,6 +4458,7 @@ renderTable = function() {
       <td class="cb-col" onclick="event.stopPropagation()"><input type="checkbox" ${checked} onchange="toggleSelection(${idx},this.checked)" /></td>
       <td><strong>${g.name}</strong>${hubBadge}${homeBadge}<br><span style="color:#636e72;font-size:11px">${g.leader}</span></td>
       <td onclick="event.stopPropagation()" style="white-space:nowrap;text-align:center;display:flex;gap:2px;align-items:center;justify-content:center;">${homeBtn}${favBtn}${avoidBtn}${noteBtn}</td>
+      <td onclick="event.stopPropagation()" style="text-align:center;">${buildFreqSelect(idx)}</td>
       <td><span class="badge ${g.type.toLowerCase()}">${g.type}</span></td>
       <td>${g.city}</td>
       <td style="white-space:nowrap">${g.day}</td>
@@ -4425,7 +4492,7 @@ renderCalendar = function() {
     const date = getNthWeekday(calYear, calMonth, parsed.nth, parsed.weekdayIndex);
     if (!date) return;
     const key = date.toDateString();
-    if (!meetingsByDate[key]) meetingsByDate[key] = { booked: [], available: [], hubBooked: [] };
+    if (!meetingsByDate[key]) meetingsByDate[key] = { booked: [], available: [], hubBooked: [], proforma: [] };
     const slot = getTimeSlot(g.time);
     const hubReg = isHubRegistered(idx, date);
     if (hubReg) {
@@ -4433,7 +4500,12 @@ renderCalendar = function() {
     } else if (selectedMeetings.has(idx)) {
       meetingsByDate[key].booked.push({ idx, slot, group: g });
     } else {
-      meetingsByDate[key].available.push({ idx, slot, group: g });
+      const vf = visitFrequency[idx];
+      if (vf && vf.freq !== 'skip' && vf.months && vf.months.includes(calMonth)) {
+        meetingsByDate[key].proforma.push({ idx, slot, group: g });
+      } else {
+        meetingsByDate[key].available.push({ idx, slot, group: g });
+      }
     }
   });
 
@@ -4443,7 +4515,7 @@ renderCalendar = function() {
     if (!reg.parsedDate) return;
     if (reg.parsedDate.getMonth() !== calMonth || reg.parsedDate.getFullYear() !== calYear) return;
     const key = reg.parsedDate.toDateString();
-    if (!meetingsByDate[key]) meetingsByDate[key] = { booked: [], available: [], hubBooked: [] };
+    if (!meetingsByDate[key]) meetingsByDate[key] = { booked: [], available: [], hubBooked: [], proforma: [] };
     const slot = reg.startDate.includes('AM') && !reg.startDate.includes('11') && !reg.startDate.includes('12') ? 'morning' : 'lunch';
     meetingsByDate[key].hubBooked.push({
       idx: -1, slot, group: { name: reg.eventName, type: reg.eventType, region: '', leader: '', day: '', time: reg.startDate, city: reg.location }
@@ -4476,6 +4548,7 @@ renderCalendar = function() {
       const sectionClass = slot === 'morning' ? 'section-morning' : slot === 'lunch' ? 'section-midday' : 'section-evening';
       const hubBooked = meetings ? meetings.hubBooked.filter(m => m.slot === slot) : [];
       const booked = meetings ? meetings.booked.filter(m => m.slot === slot) : [];
+      const proforma = meetings ? meetings.proforma.filter(m => m.slot === slot) : [];
       const avail = meetings ? meetings.available.filter(m => m.slot === slot) : [];
 
       html += `<div class="cal-time-section ${sectionClass}"><div class="cal-time-header">${sectionName}</div>`;
@@ -4495,14 +4568,20 @@ renderCalendar = function() {
         });
       }
 
+      // Pro forma planned visits (dashed purple)
+      proforma.forEach(m => {
+        html += `<div class="cal-slot proforma" onclick="bookProforma(${m.idx})" onmouseenter="showTooltip(event,${m.idx},false)" onmouseleave="hideTooltip()">
+          <span class="slot-label">PLN</span><span class="slot-name">${m.group.name}</span></div>`;
+      });
+
       // Available
       if (avail.length > 0) {
-        const label = (hubBooked.length > 0 || booked.length > 0) ? '+' : slotLabel;
+        const label = (hubBooked.length > 0 || booked.length > 0 || proforma.length > 0) ? '+' : slotLabel;
         html += `<div class="cal-slot available" onclick="filterForSlot('${date.toISOString()}','${slot}')"
           onmouseenter="showSlotTooltip(event,'${key}','${slot}',false)" onmouseleave="hideTooltip()">
           <span class="slot-label">${label}</span><span class="slot-name">${avail.length} available</span>
           <span class="slot-count">${avail.length}</span></div>`;
-      } else if (hubBooked.length === 0 && booked.length === 0) {
+      } else if (hubBooked.length === 0 && booked.length === 0 && proforma.length === 0) {
         html += `<div class="cal-slot open"><span class="slot-label">${slotLabel}</span><span class="slot-name">open</span></div>`;
       }
 
@@ -4596,6 +4675,120 @@ function loadNotes() {
 }
 function saveNotes() { localStorage.setItem('provisors-notes', JSON.stringify(groupNotes)); }
 
+// ── Visit Frequency ──
+let visitFrequency = {};
+let freqModalIdx = -1;
+let freqModalMonths = [];
+const FREQ_OPTIONS = [
+  { value: '', label: '— —' },
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'bimonthly', label: 'Bi-Mo' },
+  { value: 'quarterly', label: 'Qtrly' },
+  { value: 'biannual', label: 'Bi-An' },
+  { value: 'annual', label: 'Annual' },
+  { value: 'skip', label: 'Skip' }
+];
+const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const FREQ_DEFAULTS = {
+  bimonthly: [0, 2, 4, 6, 8, 10],
+  quarterly: [0, 3, 6, 9],
+  biannual: [0, 6],
+  annual: [0]
+};
+
+function loadFrequency() {
+  try { visitFrequency = JSON.parse(localStorage.getItem('provisors-visit-frequency') || '{}'); } catch(e) { visitFrequency = {}; }
+}
+function saveFrequency() { localStorage.setItem('provisors-visit-frequency', JSON.stringify(visitFrequency)); }
+
+function buildFreqSelect(idx) {
+  const vf = visitFrequency[idx];
+  const cur = vf ? vf.freq : '';
+  const hasVal = cur && cur !== '';
+  const opts = FREQ_OPTIONS.map(o =>
+    `<option value="${o.value}" ${o.value === cur ? 'selected' : ''}>${o.label}</option>`
+  ).join('');
+  return `<select class="freq-select${hasVal ? ' has-value' : ''}" onchange="onFreqChange(${idx},this.value)" onclick="event.stopPropagation()">${opts}</select>`;
+}
+
+function onFreqChange(idx, val) {
+  if (!val || val === '') {
+    delete visitFrequency[idx];
+    saveFrequency(); renderTable(); renderCalendar();
+    return;
+  }
+  if (val === 'monthly') {
+    visitFrequency[idx] = { freq: 'monthly', months: [0,1,2,3,4,5,6,7,8,9,10,11] };
+    saveFrequency(); renderTable(); renderCalendar();
+    return;
+  }
+  if (val === 'skip') {
+    visitFrequency[idx] = { freq: 'skip', months: [] };
+    saveFrequency(); renderTable(); renderCalendar();
+    return;
+  }
+  // Open month picker for other frequencies
+  openFreqModal(idx, val);
+}
+
+function openFreqModal(idx, freq) {
+  freqModalIdx = idx;
+  const g = GROUPS[idx];
+  const defaults = FREQ_DEFAULTS[freq] || [];
+  // Pre-fill with existing months if same freq, otherwise use defaults
+  const existing = visitFrequency[idx];
+  freqModalMonths = (existing && existing.freq === freq) ? [...existing.months] : [...defaults];
+  document.getElementById('freq-modal-title').textContent = g.name;
+  document.getElementById('freq-modal-meta').textContent = `${freq.charAt(0).toUpperCase() + freq.slice(1)} — select which months to attend`;
+  document.getElementById('freq-modal').dataset.freq = freq;
+  renderFreqMonthGrid(defaults);
+  document.getElementById('freq-overlay').classList.add('show');
+  document.getElementById('freq-modal').classList.add('show');
+}
+
+function renderFreqMonthGrid(defaults) {
+  const grid = document.getElementById('freq-month-grid');
+  grid.innerHTML = MONTH_ABBR.map((m, i) => {
+    const isSel = freqModalMonths.includes(i);
+    const isSugg = defaults.includes(i) && !isSel;
+    const cls = isSel ? 'selected' : isSugg ? 'suggested' : '';
+    return `<button class="freq-month-btn ${cls}" onclick="toggleFreqMonth(${i})" data-month="${i}">${m}</button>`;
+  }).join('');
+}
+
+function toggleFreqMonth(month) {
+  const i = freqModalMonths.indexOf(month);
+  if (i >= 0) freqModalMonths.splice(i, 1); else freqModalMonths.push(month);
+  freqModalMonths.sort((a, b) => a - b);
+  const freq = document.getElementById('freq-modal').dataset.freq;
+  renderFreqMonthGrid(FREQ_DEFAULTS[freq] || []);
+}
+
+function saveFreqModal() {
+  const freq = document.getElementById('freq-modal').dataset.freq;
+  visitFrequency[freqModalIdx] = { freq, months: [...freqModalMonths] };
+  saveFrequency();
+  closeFreqModal();
+  renderTable(); renderCalendar();
+}
+
+function clearFreqModal() {
+  delete visitFrequency[freqModalIdx];
+  saveFrequency();
+  closeFreqModal();
+  renderTable(); renderCalendar();
+}
+
+function closeFreqModal() {
+  document.getElementById('freq-overlay').classList.remove('show');
+  document.getElementById('freq-modal').classList.remove('show');
+  freqModalIdx = -1;
+}
+
+function bookProforma(idx) {
+  toggleSelection(idx, true);
+}
+
 function openNotesModal(idx) {
   currentNoteIdx = idx;
   currentNoteRating = 0;
@@ -4666,10 +4859,14 @@ function exportSchedule() {
   const rows = [...selectedMeetings].sort((a, b) => daySort(GROUPS[a].day) - daySort(GROUPS[b].day)).map(idx => {
     const g = GROUPS[idx];
     const notes = (groupNotes[idx] || []).map(n => `[${n.date}] ${n.text}`).join(' | ');
+    const vf = visitFrequency[idx];
+    const freqLabel = vf ? FREQ_OPTIONS.find(o => o.value === vf.freq)?.label || vf.freq : '';
+    const plannedMonths = vf && vf.months ? vf.months.map(m => MONTH_ABBR[m]).join(', ') : '';
     return {
       'Group Name': g.name, 'Type': g.type, 'Region': g.region, 'Leader': g.leader,
       'Day': g.day, 'Time': g.time, 'City': g.city, 'Format': g.format || '—',
       'Distance (mi)': g.distance !== null ? g.distance.toFixed(1) : '—',
+      'Visit Freq': freqLabel, 'Planned Months': plannedMonths,
       'Favorite': favoriteGroups.has(idx) ? 'Yes' : '',
       'Notes': notes
     };
@@ -4692,7 +4889,8 @@ function shareSchedule() {
     h: myHomeGroupIdx,
     f: [...favoriteGroups],
     a: [...avoidGroups],
-    n: getLoggedInName()
+    n: getLoggedInName(),
+    vf: visitFrequency
   };
   const encoded = btoa(JSON.stringify(shareData));
   const url = window.location.origin + window.location.pathname + '#share=' + encoded;
@@ -4718,6 +4916,7 @@ function loadSharedSchedule() {
     (data.f || []).forEach(idx => favoriteGroups.add(idx));
     avoidGroups.clear();
     (data.a || []).forEach(idx => avoidGroups.add(idx));
+    if (data.vf) visitFrequency = data.vf;
     // Add banner
     const banner = document.createElement('div');
     banner.style.cssText = 'background:#C5A355;color:white;padding:8px 20px;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:space-between;';
@@ -4729,7 +4928,9 @@ function loadSharedSchedule() {
     const style = document.createElement('style');
     style.textContent = `.shared-view .controls,.shared-view .my-meetings-actions,.shared-view .hub-bar,.shared-view .cb-col,.shared-view .add-contact-row,.shared-view .contacts-actions { display:none!important; }
       .shared-view .my-meetings-header { cursor:default; } .shared-view .my-meeting-remove { display:none; }
-      .shared-view .table-wrap td:nth-child(3) { pointer-events:none; }`;
+      .shared-view .table-wrap td:nth-child(3) { pointer-events:none; }
+      .shared-view .table-wrap td:nth-child(4) { pointer-events:none; }
+      .shared-view .cal-slot.proforma { pointer-events:none; }`;
     document.head.appendChild(style);
     return true;
   } catch(e) { console.error('Invalid share link:', e); return false; }
@@ -4867,6 +5068,7 @@ function exportContacts() {
 
 // ── Init ──
 loadNotes();
+loadFrequency();
 loadContacts();
 const isSharedView = loadSharedSchedule();
 if (!isSharedView) {
