@@ -367,6 +367,117 @@
     .cal-slot.proforma:hover { background: #e8d5f5; border-color: #7b2cbf; }
     .cal-slot.proforma .slot-label { font-weight: 700; }
 
+    /* Conflict indicator */
+    .cal-slot.conflict-warning { box-shadow: 0 0 0 2px #e74c3c; position: relative; }
+    .conflict-badge { display: inline-block; background: #e74c3c; color: white; font-size: 7px; font-weight: 700; padding: 0 3px; border-radius: 3px; margin-left: 2px; vertical-align: middle; }
+
+    /* Prep Card Modal */
+    .prep-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 10000; }
+    .prep-overlay.show { display: block; }
+    .prep-modal {
+      display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      background: white; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      z-index: 10001; width: 480px; max-height: 85vh; overflow: hidden; flex-direction: column;
+    }
+    .prep-modal.show { display: flex; }
+    .prep-modal-header { padding: 16px 20px; background: #153D63; color: white; border-radius: 12px 12px 0 0; }
+    .prep-modal-header h3 { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+    .prep-modal-header .prep-meta { font-size: 11px; opacity: 0.8; }
+    .prep-modal-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+    .prep-section { margin-bottom: 16px; }
+    .prep-section h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #636e72; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+    .prep-detail { font-size: 13px; margin-bottom: 6px; display: flex; gap: 8px; }
+    .prep-detail .prep-label { font-weight: 600; color: #153D63; min-width: 70px; flex-shrink: 0; }
+    .prep-detail .prep-value { color: #2d3436; }
+    .prep-note-entry { padding: 6px 0; border-bottom: 1px solid #f5f5f5; font-size: 12px; }
+    .prep-note-entry:last-child { border-bottom: none; }
+    .prep-contact-item { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; border-bottom: 1px solid #f5f5f5; }
+    .prep-contact-item:last-child { border-bottom: none; }
+    .prep-modal-footer { padding: 12px 20px; border-top: 1px solid #eee; display: flex; gap: 8px; justify-content: flex-end; }
+    .prep-modal-footer button { padding: 8px 18px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .prep-btn { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 700; background: #153D63; color: white; margin-left: 4px; vertical-align: middle; cursor: pointer; }
+    .prep-btn:hover { background: #1a5276; }
+
+    /* Attendance check */
+    .attend-btn { font-size: 12px; cursor: pointer; padding: 2px 4px; border-radius: 3px; }
+    .attend-btn.attended { color: #27ae60; }
+    .attend-btn.not-attended { color: #ccc; }
+
+    /* Dashboard Tab */
+    .dashboard-container { height: 100%; display: flex; flex-direction: column; background: #f5f6fa; overflow-y: auto; padding: 20px; gap: 16px; }
+    .dash-row { display: flex; gap: 16px; flex-wrap: wrap; }
+    .dash-card {
+      background: white; border-radius: 10px; padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      flex: 1; min-width: 200px;
+    }
+    .dash-card h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: #636e72; margin-bottom: 12px; }
+    .dash-big-num { font-size: 36px; font-weight: 700; color: #153D63; line-height: 1; }
+    .dash-big-num .dash-unit { font-size: 14px; color: #636e72; font-weight: 400; }
+    .dash-sub { font-size: 12px; color: #999; margin-top: 4px; }
+    .dash-progress { height: 8px; background: #eee; border-radius: 4px; margin-top: 8px; overflow: hidden; }
+    .dash-progress-bar { height: 100%; border-radius: 4px; transition: width 0.3s; }
+    .dash-list { list-style: none; padding: 0; margin: 0; }
+    .dash-list li { padding: 6px 0; border-bottom: 1px solid #f0f0f0; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .dash-list li:last-child { border-bottom: none; }
+    .dash-rank { display: inline-block; width: 20px; font-weight: 700; color: #C5A355; }
+    .dash-score { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; }
+    .dash-section-title { font-size: 16px; font-weight: 700; color: #153D63; margin-bottom: 4px; }
+
+    /* ROI Modal */
+    .roi-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 10000; }
+    .roi-overlay.show { display: block; }
+    .roi-modal {
+      display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      background: white; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      z-index: 10001; width: 420px; max-height: 80vh; overflow: hidden; flex-direction: column;
+    }
+    .roi-modal.show { display: flex; }
+    .roi-modal-header { padding: 14px 20px; background: #153D63; color: white; border-radius: 12px 12px 0 0; }
+    .roi-modal-header h3 { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+    .roi-modal-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+    .roi-modal-body label { display: block; font-size: 12px; font-weight: 600; color: #636e72; margin: 10px 0 4px; }
+    .roi-modal-body input, .roi-modal-body select, .roi-modal-body textarea {
+      width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit; outline: none;
+    }
+    .roi-modal-body input:focus, .roi-modal-body textarea:focus { border-color: #153D63; }
+    .roi-modal-footer { padding: 12px 20px; border-top: 1px solid #eee; display: flex; gap: 8px; justify-content: flex-end; }
+    .roi-modal-footer button { padding: 8px 18px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .roi-entry { padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 12px; }
+    .roi-entry:last-child { border-bottom: none; }
+    .roi-amount { font-weight: 700; color: #27ae60; }
+
+    /* Follow-Up Modal */
+    .followup-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 10000; }
+    .followup-overlay.show { display: block; }
+    .followup-modal {
+      display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      background: white; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      z-index: 10001; width: 440px; max-height: 80vh; overflow: hidden; flex-direction: column;
+    }
+    .followup-modal.show { display: flex; }
+    .followup-modal-header { padding: 14px 20px; background: #153D63; color: white; border-radius: 12px 12px 0 0; }
+    .followup-modal-header h3 { font-size: 15px; font-weight: 700; }
+    .followup-modal-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+    .followup-modal-body label { display: block; font-size: 12px; font-weight: 600; color: #636e72; margin: 10px 0 4px; }
+    .followup-modal-body input, .followup-modal-body textarea {
+      width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit; outline: none;
+    }
+    .followup-item { padding: 8px 0; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+    .followup-item.overdue { background: #fff5f5; margin: 0 -20px; padding: 8px 20px; }
+    .followup-due { font-size: 11px; font-weight: 600; }
+    .followup-due.overdue { color: #e74c3c; }
+    .followup-due.upcoming { color: #f39c12; }
+    .followup-due.future { color: #27ae60; }
+    .followup-modal-footer { padding: 12px 20px; border-top: 1px solid #eee; display: flex; gap: 8px; justify-content: flex-end; }
+    .followup-modal-footer button { padding: 8px 18px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .followup-complete { text-decoration: line-through; opacity: 0.5; }
+
+    /* Match score badge */
+    .match-score-badge { display: inline-block; padding: 1px 6px; border-radius: 10px; font-size: 9px; font-weight: 700; margin-left: 4px; }
+    .match-high { background: #e8f7ed; color: #1a7f37; }
+    .match-med { background: #fff8e6; color: #b38f00; }
+    .match-low { background: #f0f0f0; color: #999; }
+
     /* Contacts Tab */
     .contacts-container { height: 100%; display: flex; flex-direction: column; background: white; overflow: hidden; }
     .contacts-header {
@@ -412,12 +523,38 @@
     }
 
     /* Responsive */
+    @media (max-width: 1200px) {
+      .sidebar { width: 55vw; min-width: 500px; }
+    }
     @media (max-width: 1024px) {
       .container { flex-direction: column; height: auto; }
-      .sidebar { width: 100%; min-width: auto; max-height: 50vh; }
+      .sidebar { width: 100%; min-width: auto; max-height: 55vh; }
       .right-panel { height: 50vh; }
       .cal-day { min-height: 70px; }
       .hub-bar { flex-wrap: wrap; }
+      .stats-bar { gap: 12px; }
+      .stat .num { font-size: 18px; }
+      .dash-row { flex-direction: column; }
+    }
+    @media (max-width: 768px) {
+      .header { padding: 12px 16px; flex-direction: column; gap: 8px; }
+      .header h1 { font-size: 18px; }
+      .stats-bar { gap: 8px; flex-wrap: wrap; justify-content: center; }
+      .sidebar { max-height: 60vh; }
+      .controls { padding: 8px 12px; }
+      .filter-row { gap: 4px; }
+      .filter-row select, .filter-row input { font-size: 11px; padding: 4px 6px; min-width: 70px; }
+      .table-wrap th, .table-wrap td { padding: 4px 4px; font-size: 11px; }
+      .freq-select { font-size: 9px; min-width: 48px; }
+      .prep-modal, .roi-modal, .followup-modal, .freq-modal, .notes-modal { width: 95vw; }
+      .dashboard-container { padding: 12px; gap: 12px; }
+      .view-tab { font-size: 11px; padding: 8px 8px; }
+    }
+    @media (max-width: 480px) {
+      .address-row { flex-direction: column; }
+      .address-row button { width: 100%; }
+      .my-meetings-actions { flex-wrap: wrap; gap: 4px; }
+      .my-meetings-actions .btn-hub, .my-meetings-actions .btn-clear { font-size: 10px; padding: 4px 8px; }
     }
 
     /* Login Overlay */
@@ -597,6 +734,7 @@
       <button class="view-tab active" data-view="map" onclick="switchView('map')">Map</button>
       <button class="view-tab" data-view="calendar" onclick="switchView('calendar')">Calendar</button>
       <button class="view-tab" data-view="contacts" onclick="switchView('contacts')">Contacts</button>
+      <button class="view-tab" data-view="dashboard" onclick="switchView('dashboard')">Dashboard</button>
     </div>
     <div class="view-content">
       <!-- Map View -->
@@ -626,6 +764,7 @@
               <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fff8e6;border:1px solid #f0d78c"></div> Available</div>
               <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#f3e8fd;border:2px dashed #9b59b6"></div> Planned Visit</div>
               <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#f0f7f0;border:1px dashed #b8dab8"></div> Open Slot</div>
+              <div class="cal-legend-item"><div class="cal-legend-dot" style="background:white;border:2px solid #e74c3c"></div> Conflict</div>
             </div>
           </div>
           <div class="cal-grid-wrap">
@@ -701,11 +840,123 @@
           </div>
         </div>
       </div>
+      <!-- Dashboard View -->
+      <div class="view-pane hidden" id="view-dashboard">
+        <div class="dashboard-container" id="dashboard-container">
+          <div class="dash-section-title">Networking Dashboard</div>
+          <div class="dash-row" id="dash-stats-row"></div>
+          <div class="dash-row">
+            <div class="dash-card" style="flex:2;">
+              <h3>Top Groups by Score</h3>
+              <ul class="dash-list" id="dash-top-groups"></ul>
+            </div>
+            <div class="dash-card">
+              <h3>Follow-Ups</h3>
+              <div id="dash-followups"><span style="color:#999;font-size:12px;">No pending follow-ups</span></div>
+              <button onclick="openFollowUpModal(-1)" style="margin-top:10px;padding:6px 14px;background:#153D63;color:white;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;width:100%;">+ Add Follow-Up</button>
+            </div>
+          </div>
+          <div class="dash-row">
+            <div class="dash-card" style="flex:2;">
+              <h3>ROI Summary</h3>
+              <div id="dash-roi-summary"><span style="color:#999;font-size:12px;">No referrals logged yet</span></div>
+              <button onclick="openRoiModal(-1)" style="margin-top:10px;padding:6px 14px;background:#27ae60;color:white;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">+ Log Referral / Deal</button>
+            </div>
+            <div class="dash-card">
+              <h3>Quick Actions</h3>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <button onclick="exportIcal()" style="padding:8px 14px;background:#153D63;color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Download .ics Calendar</button>
+                <button onclick="exportSchedule()" style="padding:8px 14px;background:#27ae60;color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Export to Excel</button>
+                <button onclick="showTravelPlan()" style="padding:8px 14px;background:#C5A355;color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">This Week's Route</button>
+              </div>
+            </div>
+          </div>
+          <div class="dash-row">
+            <div class="dash-card" style="flex:1;">
+              <h3>Attendance This Year</h3>
+              <div id="dash-attendance-chart"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
 <div class="slot-tooltip" id="slot-tooltip"></div>
+
+<!-- Prep Card Modal -->
+<div class="prep-overlay" id="prep-overlay" onclick="closePrepModal()"></div>
+<div class="prep-modal" id="prep-modal">
+  <div class="prep-modal-header">
+    <h3 id="prep-modal-title">Meeting Prep</h3>
+    <div class="prep-meta" id="prep-modal-meta"></div>
+  </div>
+  <div class="prep-modal-body" id="prep-modal-body"></div>
+  <div class="prep-modal-footer">
+    <button onclick="closePrepModal()" style="background:#e0e0e0;color:#333;">Close</button>
+    <button onclick="markAttended(prepModalIdx)" style="background:#27ae60;color:white;">Mark Attended</button>
+  </div>
+</div>
+
+<!-- ROI Modal -->
+<div class="roi-overlay" id="roi-overlay" onclick="closeRoiModal()"></div>
+<div class="roi-modal" id="roi-modal">
+  <div class="roi-modal-header">
+    <h3 id="roi-modal-title">Log Referral / Deal</h3>
+  </div>
+  <div class="roi-modal-body">
+    <label>Group</label>
+    <select id="roi-group"></select>
+    <label>Type</label>
+    <select id="roi-type">
+      <option value="referral_given">Referral Given</option>
+      <option value="referral_received">Referral Received</option>
+      <option value="deal_closed">Deal Closed</option>
+      <option value="intro">Introduction Made</option>
+    </select>
+    <label>Contact Name</label>
+    <input type="text" id="roi-contact" placeholder="Who was involved?" />
+    <label>Amount ($)</label>
+    <input type="number" id="roi-amount" placeholder="0" min="0" />
+    <label>Notes</label>
+    <textarea id="roi-notes" rows="2" placeholder="Details..."></textarea>
+    <div style="margin-top:12px;border-top:1px solid #eee;padding-top:10px;">
+      <h4 style="font-size:12px;color:#636e72;text-transform:uppercase;margin-bottom:8px;">History</h4>
+      <div id="roi-history"></div>
+    </div>
+  </div>
+  <div class="roi-modal-footer">
+    <button onclick="closeRoiModal()" style="background:#e0e0e0;color:#333;">Cancel</button>
+    <button onclick="saveRoi()" style="background:#27ae60;color:white;">Save</button>
+  </div>
+</div>
+
+<!-- Follow-Up Modal -->
+<div class="followup-overlay" id="followup-overlay" onclick="closeFollowUpModal()"></div>
+<div class="followup-modal" id="followup-modal">
+  <div class="followup-modal-header">
+    <h3>Follow-Up Queue</h3>
+  </div>
+  <div class="followup-modal-body">
+    <label>Contact Name</label>
+    <input type="text" id="followup-name" placeholder="Who to follow up with?" />
+    <label>From Group</label>
+    <select id="followup-group"></select>
+    <label>Follow-Up By</label>
+    <input type="date" id="followup-date" />
+    <label>Notes</label>
+    <textarea id="followup-notes" rows="2" placeholder="What to follow up about..."></textarea>
+    <div style="margin-top:12px;border-top:1px solid #eee;padding-top:10px;">
+      <h4 style="font-size:12px;color:#636e72;text-transform:uppercase;margin-bottom:8px;">Pending Follow-Ups</h4>
+      <div id="followup-list"></div>
+    </div>
+  </div>
+  <div class="followup-modal-footer">
+    <button onclick="closeFollowUpModal()" style="background:#e0e0e0;color:#333;">Cancel</button>
+    <button onclick="saveFollowUp()" style="background:#153D63;color:white;">Save</button>
+  </div>
+</div>
 
 <!-- Notes Modal -->
 <div class="overlay" id="notes-overlay" onclick="closeNotesModal()"></div>
@@ -3641,12 +3892,13 @@ const now = new Date(); calYear = now.getFullYear(); calMonth = now.getMonth();
 // ── View Switching ──
 function switchView(view) {
   document.querySelectorAll('.view-tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
-  ['map','calendar','contacts'].forEach(v => {
+  ['map','calendar','contacts','dashboard'].forEach(v => {
     document.getElementById('view-' + v).className = 'view-pane ' + (view === v ? 'visible' : 'hidden');
   });
   if (view === 'map') setTimeout(() => map.invalidateSize(), 100);
   if (view === 'calendar') renderCalendar();
   if (view === 'contacts') renderContacts();
+  if (view === 'dashboard') renderDashboard();
 }
 
 // ── Map Init ──
@@ -4485,6 +4737,7 @@ renderCalendar = function() {
   const daysInMonth = lastDay.getDate();
   const today = new Date(); today.setHours(0,0,0,0);
 
+  const conflicts = getConflicts(calYear, calMonth);
   const meetingsByDate = {};
   GROUPS.forEach((g, idx) => {
     const parsed = parseDayPattern(g.day);
@@ -4563,15 +4816,22 @@ renderCalendar = function() {
       if (booked.length > 0) {
         booked.forEach(m => {
           const cls = m.idx === myHomeGroupIdx ? 'booked-home-group' : m.group.type === 'Affinity' ? 'booked-affinity' : 'booked';
-          html += `<div class="cal-slot ${cls}" onmouseenter="showTooltip(event,${m.idx},true)" onmouseleave="hideTooltip()">
-            <span class="slot-label">${slotLabel}</span><span class="slot-name">${m.group.name}</span></div>`;
+          const hasConflict = conflicts[m.idx] ? ' conflict-warning' : '';
+          const conflictBadge = conflicts[m.idx] ? '<span class="conflict-badge">!</span>' : '';
+          const attended = isAttended(m.idx, calYear, calMonth);
+          const attendIcon = attended ? ' <span style="font-size:8px;opacity:0.7;">&#10003;</span>' : '';
+          html += `<div class="cal-slot ${cls}${hasConflict}" onmouseenter="showTooltip(event,${m.idx},true)" onmouseleave="hideTooltip()">
+            <span class="slot-label">${slotLabel}</span><span class="slot-name">${m.group.name}${conflictBadge}${attendIcon}</span>
+            <span class="prep-btn" onclick="event.stopPropagation();openPrepModal(${m.idx})">PREP</span></div>`;
         });
       }
 
       // Pro forma planned visits (dashed purple)
       proforma.forEach(m => {
-        html += `<div class="cal-slot proforma" onclick="bookProforma(${m.idx})" onmouseenter="showTooltip(event,${m.idx},false)" onmouseleave="hideTooltip()">
-          <span class="slot-label">PLN</span><span class="slot-name">${m.group.name}</span></div>`;
+        const hasConflict = conflicts[m.idx] ? ' conflict-warning' : '';
+        const conflictBadge = conflicts[m.idx] ? '<span class="conflict-badge">!</span>' : '';
+        html += `<div class="cal-slot proforma${hasConflict}" onclick="bookProforma(${m.idx})" onmouseenter="showTooltip(event,${m.idx},false)" onmouseleave="hideTooltip()">
+          <span class="slot-label">PLN</span><span class="slot-name">${m.group.name}${conflictBadge}</span></div>`;
       });
 
       // Available
@@ -5066,9 +5326,450 @@ function exportContacts() {
   a.click();
 }
 
+// ── Attendance Tracker ──
+let attendanceLog = {};
+function loadAttendance() { try { attendanceLog = JSON.parse(localStorage.getItem('provisors-attendance') || '{}'); } catch(e) { attendanceLog = {}; } }
+function saveAttendance() { localStorage.setItem('provisors-attendance', JSON.stringify(attendanceLog)); }
+function markAttended(idx) {
+  const key = `${idx}-${calYear}-${calMonth}`;
+  if (!attendanceLog[key]) {
+    attendanceLog[key] = { idx, year: calYear, month: calMonth, date: new Date().toISOString().split('T')[0] };
+    saveAttendance();
+    alert(`Marked "${GROUPS[idx].name}" as attended for ${MONTH_NAMES[calMonth]} ${calYear}!`);
+  } else {
+    delete attendanceLog[key];
+    saveAttendance();
+  }
+  renderCalendar();
+  if (document.getElementById('view-dashboard').classList.contains('visible')) renderDashboard();
+}
+function isAttended(idx, year, month) { return !!attendanceLog[`${idx}-${year}-${month}`]; }
+
+// ── Prep Card Modal ──
+let prepModalIdx = -1;
+function openPrepModal(idx) {
+  prepModalIdx = idx;
+  const g = GROUPS[idx];
+  document.getElementById('prep-modal-title').textContent = g.name;
+  document.getElementById('prep-modal-meta').textContent = `${g.type} Group · ${g.day} · ${g.time} · ${g.city}`;
+  const body = document.getElementById('prep-modal-body');
+  let html = '<div class="prep-section"><h4>Meeting Details</h4>';
+  html += `<div class="prep-detail"><span class="prep-label">Leader</span><span class="prep-value">${g.leader}</span></div>`;
+  html += `<div class="prep-detail"><span class="prep-label">Region</span><span class="prep-value">${g.region}</span></div>`;
+  html += `<div class="prep-detail"><span class="prep-label">Format</span><span class="prep-value">${g.format || '—'}</span></div>`;
+  html += `<div class="prep-detail"><span class="prep-label">Distance</span><span class="prep-value">${g.distance !== null ? g.distance.toFixed(1) + ' mi' : '—'}</span></div>`;
+  const vf = visitFrequency[idx];
+  if (vf) {
+    const freqLabel = FREQ_OPTIONS.find(o => o.value === vf.freq)?.label || vf.freq;
+    html += `<div class="prep-detail"><span class="prep-label">Frequency</span><span class="prep-value">${freqLabel}</span></div>`;
+  }
+  const hubReg = typeof isHubRegistered === 'function' && isHubRegistered(idx);
+  if (hubReg) html += `<div class="prep-detail"><span class="prep-label">Status</span><span class="prep-value" style="color:#27ae60;font-weight:600;">Hub Registered</span></div>`;
+  html += '</div>';
+  // Notes history
+  const notes = groupNotes[idx] || [];
+  if (notes.length > 0) {
+    html += '<div class="prep-section"><h4>Your Notes</h4>';
+    notes.slice(-5).reverse().forEach(n => {
+      const stars = n.rating ? ' ' + '★'.repeat(n.rating) + '☆'.repeat(5 - n.rating) : '';
+      html += `<div class="prep-note-entry"><span style="color:#999;font-size:11px;">${n.date}${stars ? ' <span style="color:#C5A355;">' + stars + '</span>' : ''}</span><div style="margin-top:2px;">${escapeHtml(n.text)}</div></div>`;
+    });
+    html += '</div>';
+  }
+  // Contacts from this group
+  const groupContacts = creContacts.filter(c => (c.groups || '').toLowerCase().includes(g.name.toLowerCase()));
+  if (groupContacts.length > 0) {
+    html += '<div class="prep-section"><h4>Known Contacts in This Group</h4>';
+    groupContacts.slice(0, 10).forEach(c => {
+      html += `<div class="prep-contact-item"><span><strong>${escapeHtml(c.name)}</strong> <span style="color:#636e72;">${escapeHtml(c.profession || '')}</span></span><span style="color:#999;font-size:11px;">${escapeHtml(c.company || '')}</span></div>`;
+    });
+    html += '</div>';
+  }
+  // ROI from this group
+  const roiEntries = (roiLog || []).filter(r => r.groupIdx === idx);
+  if (roiEntries.length > 0) {
+    html += '<div class="prep-section"><h4>Referrals / Deals</h4>';
+    roiEntries.forEach(r => {
+      const typeLabel = r.type === 'referral_given' ? 'Gave' : r.type === 'referral_received' ? 'Received' : r.type === 'deal_closed' ? 'Deal' : 'Intro';
+      html += `<div class="prep-note-entry"><span style="color:#999;font-size:11px;">${r.date} · ${typeLabel}</span>${r.amount ? ' <span class="roi-amount">$' + Number(r.amount).toLocaleString() + '</span>' : ''}<div style="margin-top:2px;">${escapeHtml(r.contact || '')} ${r.notes ? '— ' + escapeHtml(r.notes) : ''}</div></div>`;
+    });
+    html += '</div>';
+  }
+  body.innerHTML = html;
+  document.getElementById('prep-overlay').classList.add('show');
+  document.getElementById('prep-modal').classList.add('show');
+}
+function closePrepModal() {
+  document.getElementById('prep-overlay').classList.remove('show');
+  document.getElementById('prep-modal').classList.remove('show');
+}
+
+// ── ROI Tracker ──
+let roiLog = [];
+function loadRoi() { try { roiLog = JSON.parse(localStorage.getItem('provisors-roi') || '[]'); } catch(e) { roiLog = []; } }
+function saveRoi() {
+  const groupIdx = parseInt(document.getElementById('roi-group').value);
+  const entry = {
+    groupIdx,
+    type: document.getElementById('roi-type').value,
+    contact: document.getElementById('roi-contact').value.trim(),
+    amount: parseFloat(document.getElementById('roi-amount').value) || 0,
+    notes: document.getElementById('roi-notes').value.trim(),
+    date: new Date().toISOString().split('T')[0]
+  };
+  if (!entry.contact) { alert('Please enter a contact name.'); return; }
+  roiLog.push(entry);
+  localStorage.setItem('provisors-roi', JSON.stringify(roiLog));
+  document.getElementById('roi-contact').value = '';
+  document.getElementById('roi-amount').value = '';
+  document.getElementById('roi-notes').value = '';
+  renderRoiHistory();
+  if (document.getElementById('view-dashboard').classList.contains('visible')) renderDashboard();
+}
+function openRoiModal(preselect) {
+  const sel = document.getElementById('roi-group');
+  sel.innerHTML = '<option value="-1">— Select Group —</option>' + GROUPS.map((g, i) => `<option value="${i}" ${i === preselect ? 'selected' : ''}>${g.name}</option>`).join('');
+  renderRoiHistory();
+  document.getElementById('roi-overlay').classList.add('show');
+  document.getElementById('roi-modal').classList.add('show');
+}
+function closeRoiModal() {
+  document.getElementById('roi-overlay').classList.remove('show');
+  document.getElementById('roi-modal').classList.remove('show');
+}
+function renderRoiHistory() {
+  const el = document.getElementById('roi-history');
+  if (roiLog.length === 0) { el.innerHTML = '<span style="color:#999;font-size:12px;">No entries yet</span>'; return; }
+  el.innerHTML = roiLog.slice(-10).reverse().map(r => {
+    const gName = r.groupIdx >= 0 && r.groupIdx < GROUPS.length ? GROUPS[r.groupIdx].name : 'Unknown';
+    const typeLabel = r.type === 'referral_given' ? 'Ref Given' : r.type === 'referral_received' ? 'Ref Received' : r.type === 'deal_closed' ? 'Deal Closed' : 'Intro';
+    return `<div class="roi-entry"><span style="color:#999;">${r.date}</span> · <strong>${escapeHtml(gName)}</strong> · ${typeLabel}${r.amount ? ' · <span class="roi-amount">$' + Number(r.amount).toLocaleString() + '</span>' : ''}<br><span style="color:#636e72;">${escapeHtml(r.contact)}${r.notes ? ' — ' + escapeHtml(r.notes) : ''}</span></div>`;
+  }).join('');
+}
+
+// ── Follow-Up Queue ──
+let followUps = [];
+function loadFollowUps() { try { followUps = JSON.parse(localStorage.getItem('provisors-followups') || '[]'); } catch(e) { followUps = []; } }
+function saveFollowUp() {
+  const name = document.getElementById('followup-name').value.trim();
+  const groupIdx = parseInt(document.getElementById('followup-group').value);
+  const dueDate = document.getElementById('followup-date').value;
+  const notes = document.getElementById('followup-notes').value.trim();
+  if (!name) { alert('Please enter a contact name.'); return; }
+  followUps.push({ name, groupIdx, dueDate, notes, date: new Date().toISOString().split('T')[0], done: false });
+  localStorage.setItem('provisors-followups', JSON.stringify(followUps));
+  document.getElementById('followup-name').value = '';
+  document.getElementById('followup-notes').value = '';
+  renderFollowUpList();
+  if (document.getElementById('view-dashboard').classList.contains('visible')) renderDashboard();
+}
+function openFollowUpModal(preselect) {
+  const sel = document.getElementById('followup-group');
+  sel.innerHTML = '<option value="-1">— Select Group —</option>' + GROUPS.map((g, i) => `<option value="${i}" ${i === preselect ? 'selected' : ''}>${g.name}</option>`).join('');
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 7);
+  document.getElementById('followup-date').value = tomorrow.toISOString().split('T')[0];
+  renderFollowUpList();
+  document.getElementById('followup-overlay').classList.add('show');
+  document.getElementById('followup-modal').classList.add('show');
+}
+function closeFollowUpModal() {
+  document.getElementById('followup-overlay').classList.remove('show');
+  document.getElementById('followup-modal').classList.remove('show');
+}
+function toggleFollowUpDone(i) {
+  followUps[i].done = !followUps[i].done;
+  localStorage.setItem('provisors-followups', JSON.stringify(followUps));
+  renderFollowUpList();
+  if (document.getElementById('view-dashboard').classList.contains('visible')) renderDashboard();
+}
+function deleteFollowUp(i) {
+  followUps.splice(i, 1);
+  localStorage.setItem('provisors-followups', JSON.stringify(followUps));
+  renderFollowUpList();
+}
+function renderFollowUpList() {
+  const el = document.getElementById('followup-list');
+  const pending = followUps.filter(f => !f.done);
+  if (pending.length === 0) { el.innerHTML = '<span style="color:#999;font-size:12px;">No pending follow-ups</span>'; return; }
+  const today = new Date().toISOString().split('T')[0];
+  el.innerHTML = pending.sort((a, b) => (a.dueDate || '9999').localeCompare(b.dueDate || '9999')).map((f, fi) => {
+    const origIdx = followUps.indexOf(f);
+    const gName = f.groupIdx >= 0 && f.groupIdx < GROUPS.length ? GROUPS[f.groupIdx].name : '';
+    let dueClass = 'future', dueText = f.dueDate || 'No date';
+    if (f.dueDate && f.dueDate < today) { dueClass = 'overdue'; dueText = 'OVERDUE — ' + f.dueDate; }
+    else if (f.dueDate && f.dueDate <= new Date(Date.now() + 3*86400000).toISOString().split('T')[0]) { dueClass = 'upcoming'; dueText = 'Soon — ' + f.dueDate; }
+    return `<div class="followup-item ${f.dueDate < today ? 'overdue' : ''}">
+      <div><strong>${escapeHtml(f.name)}</strong>${gName ? ' <span style="color:#999;font-size:10px;">(' + escapeHtml(gName) + ')</span>' : ''}
+      ${f.notes ? '<div style="color:#636e72;font-size:11px;margin-top:2px;">' + escapeHtml(f.notes) + '</div>' : ''}
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="followup-due ${dueClass}">${dueText}</span>
+        <span onclick="toggleFollowUpDone(${origIdx})" style="cursor:pointer;font-size:14px;" title="Mark done">&#10003;</span>
+        <span onclick="deleteFollowUp(${origIdx})" style="cursor:pointer;font-size:14px;color:#ccc;" title="Delete">&times;</span>
+      </div></div>`;
+  }).join('');
+}
+
+// ── Group Match Score ──
+function calcMatchScore(idx) {
+  const g = GROUPS[idx];
+  let score = 50; // base
+  // Distance bonus (closer = better)
+  if (g.distance !== null) {
+    if (g.distance < 5) score += 25;
+    else if (g.distance < 10) score += 18;
+    else if (g.distance < 15) score += 10;
+    else if (g.distance < 25) score += 5;
+  }
+  // Star rating bonus
+  const notes = groupNotes[idx] || [];
+  if (notes.length > 0) {
+    const avgRating = notes.reduce((s, n) => s + (n.rating || 0), 0) / notes.length;
+    score += avgRating * 4;
+  }
+  // Attendance history bonus
+  const attended = Object.keys(attendanceLog).filter(k => k.startsWith(idx + '-')).length;
+  score += Math.min(attended * 3, 15);
+  // ROI bonus
+  const roi = roiLog.filter(r => r.groupIdx === idx);
+  score += Math.min(roi.length * 5, 20);
+  if (roi.some(r => r.amount > 0)) score += 10;
+  // Favorite bonus
+  if (favoriteGroups.has(idx)) score += 10;
+  // Avoid penalty
+  if (avoidGroups.has(idx)) score -= 30;
+  // Home group bonus
+  if (idx === myHomeGroupIdx) score += 15;
+  // CRE-adjacent profession contacts in group
+  const groupContacts = creContacts.filter(c => (c.groups || '').toLowerCase().includes(g.name.toLowerCase()));
+  score += Math.min(groupContacts.length * 2, 10);
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+// ── iCal Export ──
+function exportIcal() {
+  const events = [];
+  const now = new Date();
+  const year = now.getFullYear();
+  // Generate events for next 6 months
+  for (let mOff = 0; mOff < 6; mOff++) {
+    const m = (now.getMonth() + mOff) % 12;
+    const y = year + Math.floor((now.getMonth() + mOff) / 12);
+    GROUPS.forEach((g, idx) => {
+      const isBooked = selectedMeetings.has(idx);
+      const vf = visitFrequency[idx];
+      const isPlanned = vf && vf.freq !== 'skip' && vf.months && vf.months.includes(m);
+      if (!isBooked && !isPlanned) return;
+      const parsed = parseDayPattern(g.day);
+      if (!parsed) return;
+      const date = getNthWeekday(y, m, parsed.nth, parsed.weekdayIndex);
+      if (!date) return;
+      // Parse time
+      const timeMatch = g.time.match(/(\d{1,2}):?(\d{2})?\s*(am|pm)/i);
+      let hour = 12, min = 0;
+      if (timeMatch) {
+        hour = parseInt(timeMatch[1]);
+        min = parseInt(timeMatch[2] || '0');
+        if (timeMatch[3].toLowerCase() === 'pm' && hour !== 12) hour += 12;
+        if (timeMatch[3].toLowerCase() === 'am' && hour === 12) hour = 0;
+      }
+      const start = new Date(y, m, date.getDate(), hour, min);
+      const end = new Date(start.getTime() + 2 * 3600000); // 2 hour duration
+      events.push({
+        summary: `ProVisors: ${g.name}${isPlanned && !isBooked ? ' (Planned)' : ''}`,
+        start, end,
+        location: `${g.city}, CA`,
+        description: `${g.type} Group · Leader: ${g.leader} · ${g.format || 'TBD'}`
+      });
+    });
+  }
+  if (events.length === 0) { alert('No meetings to export. Select meetings or set visit frequencies first.'); return; }
+  let ical = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//CLS CRE//ProVisors Schedule//EN\r\nCALSCALE:GREGORIAN\r\n';
+  events.forEach(e => {
+    const fmt = d => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    ical += `BEGIN:VEVENT\r\nDTSTART:${fmt(e.start)}\r\nDTEND:${fmt(e.end)}\r\nSUMMARY:${e.summary}\r\nLOCATION:${e.location}\r\nDESCRIPTION:${e.description}\r\nEND:VEVENT\r\n`;
+  });
+  ical += 'END:VCALENDAR\r\n';
+  const blob = new Blob([ical], { type: 'text/calendar' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ProVisors-Schedule.ics';
+  a.click();
+}
+
+// ── Travel Optimization ──
+function showTravelPlan() {
+  const now = new Date();
+  const weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay() + 1); // Monday
+  const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 4); // Friday
+  const dayMeetings = {};
+  for (let d = new Date(weekStart); d <= weekEnd; d.setDate(d.getDate() + 1)) {
+    const key = d.toDateString();
+    const dayName = DAY_NAMES[d.getDay()];
+    GROUPS.forEach((g, idx) => {
+      if (!selectedMeetings.has(idx)) {
+        const vf = visitFrequency[idx];
+        if (!(vf && vf.freq !== 'skip' && vf.months && vf.months.includes(d.getMonth()))) return;
+      }
+      const parsed = parseDayPattern(g.day);
+      if (!parsed) return;
+      const meetDate = getNthWeekday(d.getFullYear(), d.getMonth(), parsed.nth, parsed.weekdayIndex);
+      if (!meetDate || meetDate.toDateString() !== key) return;
+      if (!dayMeetings[key]) dayMeetings[key] = { day: dayName, date: new Date(d), meetings: [] };
+      dayMeetings[key].meetings.push({ idx, group: g });
+    });
+  }
+  const days = Object.values(dayMeetings).filter(d => d.meetings.length > 0);
+  if (days.length === 0) { alert('No meetings scheduled this week.'); return; }
+  let msg = "This Week's Route Plan\n" + '='.repeat(30) + '\n\n';
+  days.forEach(d => {
+    msg += `${d.day} (${d.date.getMonth() + 1}/${d.date.getDate()}):\n`;
+    // Sort by distance from user if available
+    if (userLat !== null) {
+      d.meetings.sort((a, b) => (a.group.distance || 999) - (b.group.distance || 999));
+    }
+    d.meetings.forEach((m, i) => {
+      const dist = m.group.distance !== null ? ` (${m.group.distance.toFixed(1)} mi)` : '';
+      msg += `  ${i + 1}. ${m.group.name} — ${m.group.time}, ${m.group.city}${dist}\n`;
+    });
+    if (d.meetings.length > 1 && userLat !== null) {
+      const totalDist = d.meetings.reduce((s, m) => s + (m.group.distance || 0), 0);
+      msg += `  Total: ~${totalDist.toFixed(1)} mi round trip\n`;
+    }
+    msg += '\n';
+  });
+  alert(msg);
+}
+
+// ── Conflict Detection ──
+function getConflicts(year, month) {
+  const conflicts = {};
+  const slotMap = {};
+  GROUPS.forEach((g, idx) => {
+    if (!selectedMeetings.has(idx)) {
+      const vf = visitFrequency[idx];
+      if (!(vf && vf.freq !== 'skip' && vf.months && vf.months.includes(month))) return;
+    }
+    const parsed = parseDayPattern(g.day);
+    if (!parsed) return;
+    const date = getNthWeekday(year, month, parsed.nth, parsed.weekdayIndex);
+    if (!date) return;
+    const slot = getTimeSlot(g.time);
+    const key = `${date.toDateString()}-${slot}`;
+    if (!slotMap[key]) slotMap[key] = [];
+    slotMap[key].push(idx);
+  });
+  Object.entries(slotMap).forEach(([key, indices]) => {
+    if (indices.length > 1) {
+      indices.forEach(idx => { conflicts[idx] = indices.filter(i => i !== idx); });
+    }
+  });
+  return conflicts;
+}
+
+// ── Dashboard Renderer ──
+function renderDashboard() {
+  // Stats row
+  const statsRow = document.getElementById('dash-stats-row');
+  const totalAttended = Object.keys(attendanceLog).length;
+  const uniqueGroups = new Set(Object.values(attendanceLog).map(a => a.idx)).size;
+  const totalReferrals = roiLog.length;
+  const totalDeals = roiLog.filter(r => r.type === 'deal_closed').length;
+  const totalRevenue = roiLog.filter(r => r.type === 'deal_closed').reduce((s, r) => s + (r.amount || 0), 0);
+  const pendingFollowUps = followUps.filter(f => !f.done).length;
+  const plannedGroups = Object.keys(visitFrequency).filter(k => visitFrequency[k].freq !== 'skip').length;
+
+  statsRow.innerHTML = `
+    <div class="dash-card"><h3>Meetings Attended</h3><div class="dash-big-num">${totalAttended}</div><div class="dash-sub">${uniqueGroups} unique groups</div></div>
+    <div class="dash-card"><h3>Referrals / Intros</h3><div class="dash-big-num">${totalReferrals}</div><div class="dash-sub">${totalDeals} deals closed</div></div>
+    <div class="dash-card"><h3>Deal Revenue</h3><div class="dash-big-num">$${totalRevenue > 0 ? totalRevenue.toLocaleString() : '0'}</div><div class="dash-sub">From ${totalDeals} deals</div></div>
+    <div class="dash-card"><h3>Follow-Ups</h3><div class="dash-big-num">${pendingFollowUps}</div><div class="dash-sub">pending · ${plannedGroups} groups planned</div></div>
+  `;
+
+  // Top groups by match score
+  const topGroups = document.getElementById('dash-top-groups');
+  const scores = GROUPS.map((g, idx) => ({ idx, name: g.name, score: calcMatchScore(idx), type: g.type }))
+    .filter(s => !avoidGroups.has(s.idx))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
+  topGroups.innerHTML = scores.map((s, i) => {
+    const scoreColor = s.score >= 75 ? 'background:#e8f7ed;color:#1a7f37;' : s.score >= 50 ? 'background:#fff8e6;color:#b38f00;' : 'background:#f0f0f0;color:#999;';
+    return `<li><span><span class="dash-rank">${i + 1}.</span> ${escapeHtml(s.name)} <span style="color:#999;font-size:10px;">${s.type}</span></span><span class="dash-score" style="${scoreColor}">${s.score}</span></li>`;
+  }).join('');
+
+  // Follow-ups
+  const dashFollowups = document.getElementById('dash-followups');
+  const pendingFU = followUps.filter(f => !f.done).sort((a, b) => (a.dueDate || '9999').localeCompare(b.dueDate || '9999')).slice(0, 5);
+  const today = new Date().toISOString().split('T')[0];
+  if (pendingFU.length === 0) {
+    dashFollowups.innerHTML = '<span style="color:#999;font-size:12px;">No pending follow-ups</span>';
+  } else {
+    dashFollowups.innerHTML = pendingFU.map(f => {
+      let dueClass = 'future';
+      if (f.dueDate && f.dueDate < today) dueClass = 'overdue';
+      else if (f.dueDate && f.dueDate <= new Date(Date.now() + 3*86400000).toISOString().split('T')[0]) dueClass = 'upcoming';
+      return `<div style="padding:4px 0;border-bottom:1px solid #f0f0f0;font-size:12px;display:flex;justify-content:space-between;">
+        <span><strong>${escapeHtml(f.name)}</strong></span>
+        <span class="followup-due ${dueClass}">${f.dueDate || 'No date'}</span></div>`;
+    }).join('');
+  }
+
+  // ROI summary
+  const dashRoi = document.getElementById('dash-roi-summary');
+  if (roiLog.length === 0) {
+    dashRoi.innerHTML = '<span style="color:#999;font-size:12px;">No referrals logged yet</span>';
+  } else {
+    // Group ROI by group
+    const roiByGroup = {};
+    roiLog.forEach(r => {
+      const gName = r.groupIdx >= 0 && r.groupIdx < GROUPS.length ? GROUPS[r.groupIdx].name : 'Other';
+      if (!roiByGroup[gName]) roiByGroup[gName] = { count: 0, revenue: 0 };
+      roiByGroup[gName].count++;
+      if (r.type === 'deal_closed') roiByGroup[gName].revenue += r.amount || 0;
+    });
+    const sorted = Object.entries(roiByGroup).sort((a, b) => b[1].revenue - a[1].revenue || b[1].count - a[1].count);
+    dashRoi.innerHTML = sorted.slice(0, 5).map(([name, data]) =>
+      `<div style="padding:4px 0;border-bottom:1px solid #f0f0f0;font-size:12px;display:flex;justify-content:space-between;">
+        <span>${escapeHtml(name)} <span style="color:#999;">(${data.count})</span></span>
+        ${data.revenue > 0 ? `<span class="roi-amount">$${data.revenue.toLocaleString()}</span>` : '<span style="color:#999;">—</span>'}</div>`
+    ).join('');
+  }
+
+  // Attendance chart (simple text-based for now)
+  const attChart = document.getElementById('dash-attendance-chart');
+  const year = new Date().getFullYear();
+  let chartHtml = '<div style="display:flex;gap:4px;align-items:flex-end;height:100px;margin-top:8px;">';
+  for (let m = 0; m < 12; m++) {
+    const count = Object.values(attendanceLog).filter(a => a.year === year && a.month === m).length;
+    const planned = Object.keys(visitFrequency).filter(k => {
+      const vf = visitFrequency[k];
+      return vf.freq !== 'skip' && vf.months && vf.months.includes(m);
+    }).length;
+    const maxH = Math.max(planned, count, 1);
+    const barH = Math.max((count / Math.max(maxH, 4)) * 80, 2);
+    const planH = Math.max((planned / Math.max(maxH, 4)) * 80, 2);
+    const isPast = m < new Date().getMonth();
+    const isCurrent = m === new Date().getMonth();
+    chartHtml += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:80px;">
+        <div style="width:100%;background:${count > 0 ? '#153D63' : '#eee'};height:${barH}px;border-radius:3px 3px 0 0;position:relative;" title="${count} attended">
+          ${planned > 0 ? `<div style="position:absolute;bottom:0;left:0;right:0;height:${planH}px;border:1px dashed #9b59b6;border-radius:3px 3px 0 0;background:transparent;"></div>` : ''}
+        </div>
+      </div>
+      <div style="font-size:9px;color:${isCurrent ? '#153D63' : '#999'};font-weight:${isCurrent ? '700' : '400'};">${MONTH_ABBR[m]}</div>
+    </div>`;
+  }
+  chartHtml += '</div>';
+  chartHtml += '<div style="display:flex;gap:12px;margin-top:8px;font-size:10px;color:#999;"><span><span style="display:inline-block;width:10px;height:10px;background:#153D63;border-radius:2px;vertical-align:middle;"></span> Attended</span><span><span style="display:inline-block;width:10px;height:10px;border:1px dashed #9b59b6;border-radius:2px;vertical-align:middle;"></span> Planned</span></div>';
+  attChart.innerHTML = chartHtml;
+}
+
 // ── Init ──
 loadNotes();
 loadFrequency();
+loadAttendance();
+loadRoi();
+loadFollowUps();
 loadContacts();
 const isSharedView = loadSharedSchedule();
 if (!isSharedView) {
